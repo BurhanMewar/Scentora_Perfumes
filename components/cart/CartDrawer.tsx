@@ -14,10 +14,6 @@ import { formatKwd } from "@/lib/currency";
 
 type CartItem = GuestCartItem;
 
-type CartResponse = {
-  data?: CartItem[];
-};
-
 export default function CartDrawer() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
@@ -32,6 +28,12 @@ export default function CartDrawer() {
     [items],
   );
 
+  const loadCart = () => {
+    setLoading(true);
+    setItems(getGuestCart());
+    setLoading(false);
+  };
+
   useEffect(() => {
     function openDrawer() {
       setOpen(true);
@@ -44,8 +46,6 @@ export default function CartDrawer() {
 
     window.addEventListener("scentora:cart-open", openDrawer);
     window.addEventListener("scentora:cart-updated", refreshDrawer);
-    void loadCart();
-
     return () => {
       window.removeEventListener("scentora:cart-open", openDrawer);
       window.removeEventListener("scentora:cart-updated", refreshDrawer);
@@ -67,77 +67,18 @@ export default function CartDrawer() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  async function loadCart() {
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/cart", { cache: "no-store" });
-
-      if (response.status === 401) {
-        setItems(getGuestCart());
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Unable to load cart");
-      }
-
-      const body = (await response.json()) as CartResponse;
-      setItems(body.data ?? []);
-    } catch {
-      setItems(getGuestCart());
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function updateQuantity(item: CartItem, quantity: number) {
+  function updateQuantity(item: CartItem, quantity: number) {
     if (quantity < 1) {
       return removeItem(item);
     }
 
-    const response = await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId: item.productId,
-        quantity,
-        scentOption: item.scentOption ?? "",
-      }),
-    });
-
-    if (response.status === 401) {
-      updateGuestCartItem(item.productId, quantity, item.scentOption ?? "");
-      setItems(getGuestCart());
-      return;
-    }
-
-    if (response.ok) {
-      await loadCart();
-      window.dispatchEvent(new Event("scentora:cart-updated"));
-    }
+    updateGuestCartItem(item.productId, quantity, item.scentOption ?? "");
+    setItems(getGuestCart());
   }
 
-  async function removeItem(item: CartItem) {
-    const response = await fetch("/api/cart", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId: item.productId,
-        scentOption: item.scentOption ?? "",
-      }),
-    });
-
-    if (response.status === 401) {
-      removeGuestCartItem(item.productId, item.scentOption ?? "");
-      setItems(getGuestCart());
-      return;
-    }
-
-    if (response.ok) {
-      await loadCart();
-      window.dispatchEvent(new Event("scentora:cart-updated"));
-    }
+  function removeItem(item: CartItem) {
+    removeGuestCartItem(item.productId, item.scentOption ?? "");
+    setItems(getGuestCart());
   }
 
   return (

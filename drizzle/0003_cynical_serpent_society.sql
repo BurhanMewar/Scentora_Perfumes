@@ -1,1 +1,0 @@
-ALTER TABLE "orders" ADD COLUMN "payment_method" text DEFAULT 'CASH_ON_DELIVERY' NOT NULL;

@@ -25,23 +25,15 @@ export default function ContactForm() {
     setStatus(null);
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const body = (await response.json().catch(() => null)) as
-        | { error?: string; message?: string }
-        | null;
-
-      if (!response.ok || body?.error) {
-        throw new Error(body?.error || "Unable to send your message");
-      }
-
+      const subject = encodeURIComponent(form.subject || "Scentora enquiry");
+      const body = encodeURIComponent(
+        `${form.message}\n\nFrom: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}`,
+      );
+      window.location.href = `mailto:support@scentora.com?subject=${subject}&body=${body}`;
       setForm(emptyForm);
       setStatus({
         tone: "success",
-        message: "Thank you. Your message has been sent to SCENTORA.",
+        message: "Your email app is ready with your message addressed to Scentora.",
       });
     } catch (error) {
       setStatus({

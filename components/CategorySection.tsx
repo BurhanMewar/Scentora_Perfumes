@@ -49,7 +49,7 @@ export default function CategorySection() {
                     </div>
                 </Link>
             </div>
-            <div className=" max-w-[1250px] mx-auto flex  gap-12 items-center px-6">
+            <div className="mx-auto flex max-w-[1250px] flex-col gap-8 px-4 sm:px-6 lg:flex-row lg:items-center lg:gap-12">
 
                 {/* Left Image */}
                 <div className="flex justify-center lg:justify-start">
@@ -58,7 +58,7 @@ export default function CategorySection() {
                         alt="Luxury amber perfume bottle on pastel stairs"
                         width={380}
                         height={420}
-                        className="rounded-soft shadow-img object-cover"
+                        className="h-auto w-full max-w-[280px] rounded-soft object-cover shadow-img sm:max-w-[380px]"
                         priority
                     />
                 </div>

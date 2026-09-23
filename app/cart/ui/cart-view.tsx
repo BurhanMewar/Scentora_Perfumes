@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
   getGuestCart,
@@ -21,19 +21,9 @@ type CartItem = {
   scentOption?: string | null;
 };
 
-type CartResponse = {
-  data: CartItem[];
-  meta: {
-    totalQuantity: number;
-    subtotal: number;
-  };
-};
-
 export default function CartView() {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [guestMode, setGuestMode] = useState(false);
   const [loading, setLoading] = useState(true);
-  const quantitySyncTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const subtotal = useMemo(
     () => items.reduce((total, item) => total + item.price * item.quantity, 0),
@@ -44,22 +34,12 @@ export default function CartView() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/cart", { cache: "no-store" });
-
-      if (response.status === 401) {
-        setGuestMode(true);
-        setItems(
-          getGuestCart().map((item) => ({
-            id: `guest-${item.productId}-${item.scentOption ?? "default"}`,
-            ...item,
-          })),
-        );
-        return;
-      }
-
-      const body = (await response.json()) as CartResponse;
-      setGuestMode(false);
-      setItems(body.data);
+      setItems(
+        getGuestCart().map((item) => ({
+          id: `guest-${item.productId}-${item.scentOption ?? "default"}`,
+          ...item,
+        })),
+      );
     } finally {
       setLoading(false);
     }
@@ -67,35 +47,9 @@ export default function CartView() {
 
   const syncQuantity = useCallback(
     (productId: string, quantity: number, scentOption = "") => {
-      if (guestMode) {
-        updateGuestCartItem(productId, quantity, scentOption);
-        return;
-      }
-
-      clearTimeout(quantitySyncTimers.current[productId]);
-
-      quantitySyncTimers.current[productId] = setTimeout(async () => {
-        try {
-          const response = await fetch("/api/cart", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId, quantity, scentOption }),
-          });
-
-          if (!response.ok) {
-            await loadCart();
-            return;
-          }
-
-          window.dispatchEvent(new Event("scentora:cart-updated"));
-        } catch {
-          await loadCart();
-        } finally {
-          delete quantitySyncTimers.current[productId];
-        }
-      }, 450);
+      updateGuestCartItem(productId, quantity, scentOption);
     },
-    [guestMode, loadCart],
+    [],
   );
 
   function updateQuantity(productId: string, quantity: number, scentOption = "") {
@@ -114,25 +68,8 @@ export default function CartView() {
   }
 
   async function removeItem(productId: string, scentOption = "") {
-    if (guestMode) {
-      removeGuestCartItem(productId, scentOption);
-      await loadCart();
-      return;
-    }
-
-    clearTimeout(quantitySyncTimers.current[productId]);
-    delete quantitySyncTimers.current[productId];
-
-    const response = await fetch("/api/cart", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, scentOption }),
-    });
-
-    if (response.ok) {
-      window.dispatchEvent(new Event("scentora:cart-updated"));
-      await loadCart();
-    }
+    removeGuestCartItem(productId, scentOption);
+    await loadCart();
   }
 
   useEffect(() => {
@@ -140,11 +77,7 @@ export default function CartView() {
   }, [loadCart]);
 
   useEffect(() => {
-    const timers = quantitySyncTimers.current;
-
-    return () => {
-      Object.values(timers).forEach(clearTimeout);
-    };
+    return undefined;
   }, []);
 
   return (

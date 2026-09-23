@@ -1,14 +1,11 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import CartDrawer from "@/components/cart/CartDrawer";
 import Footer from "@/components/common/Footer";
 import Navbar from "@/components/common/Navbar";
 import PromoBar from "@/components/common/PromoBar";
-import { mergeGuestCartIntoAccount } from "@/lib/guest-cart";
 
 type SiteSettings = {
   promoBannerText: string;
@@ -29,19 +26,8 @@ export default function SiteShellClient({
 }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
-  const { isSignedIn, user } = useUser();
-  const mergedUserIds = useRef(new Set<string>());
-
-  useEffect(() => {
-    if (!isSignedIn || !user?.id || mergedUserIds.current.has(user.id)) {
-      return;
-    }
-
-    mergedUserIds.current.add(user.id);
-    void mergeGuestCartIntoAccount();
-  }, [isSignedIn, user?.id]);
-
-  if (isAdminRoute) {
+  const isCmsRoute = pathname?.startsWith("/cms");
+  if (isAdminRoute || isCmsRoute) {
     return <>{children}</>;
   }
 

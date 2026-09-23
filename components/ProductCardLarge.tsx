@@ -49,27 +49,13 @@ export default function ProductCardLarge({
         setAdding(true);
 
         try {
-            const response = await fetch("/api/cart", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId, quantity: 1 }),
+            addGuestCartItem({
+                productId,
+                name,
+                image,
+                price: parseCurrencyAmount(price),
+                quantity: 1,
             });
-
-            if (response.status === 401) {
-                addGuestCartItem({
-                    productId,
-                    name,
-                    image,
-                    price: parseCurrencyAmount(price),
-                    quantity: 1,
-                });
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error("Unable to add item");
-            }
-
             window.dispatchEvent(new Event("scentora:cart-updated"));
         } finally {
             setAdding(false);
@@ -84,36 +70,21 @@ export default function ProductCardLarge({
         setUpdatingWishlist(true);
 
         try {
-            const response = await fetch("/api/wishlist", {
-                method: wishlistActive ? "DELETE" : "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId }),
-            });
-
-            if (response.status === 401) {
-                if (wishlistActive) {
-                    removeGuestWishlistItem(productId);
-                    setWishlistActive(false);
-                } else {
-                    addGuestWishlistItem({
-                        productId,
-                        name,
-                        image,
-                        price: parseCurrencyAmount(price),
-                        notes,
-                        tag,
-                        slug,
-                    });
-                    setWishlistActive(true);
-                }
-                return;
+            if (wishlistActive) {
+                removeGuestWishlistItem(productId);
+                setWishlistActive(false);
+            } else {
+                addGuestWishlistItem({
+                    productId,
+                    name,
+                    image,
+                    price: parseCurrencyAmount(price),
+                    notes,
+                    tag,
+                    slug,
+                });
+                setWishlistActive(true);
             }
-
-            if (!response.ok) {
-                throw new Error("Unable to update wishlist");
-            }
-
-            setWishlistActive((active) => !active);
             window.dispatchEvent(new Event("scentora:wishlist-updated"));
         } finally {
             setUpdatingWishlist(false);

@@ -1,1 +1,0 @@
-ALTER TABLE "products" ADD COLUMN "brand" text DEFAULT 'Scentora' NOT NULL;

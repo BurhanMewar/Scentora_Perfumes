@@ -42,29 +42,14 @@ export default function ProductDetailActions({
     setAdding(true);
 
     try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity: 1, scentOption: selectedScent }),
+      addGuestCartItem({
+        productId,
+        name,
+        image,
+        price,
+        quantity: 1,
+        scentOption: selectedScent,
       });
-
-      if (response.status === 401) {
-        addGuestCartItem({
-          productId,
-          name,
-          image,
-          price,
-          quantity: 1,
-          scentOption: selectedScent,
-        });
-        window.dispatchEvent(new Event("scentora:cart-open"));
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Unable to add item");
-      }
-
       window.dispatchEvent(new Event("scentora:cart-updated"));
       window.dispatchEvent(new Event("scentora:cart-open"));
     } finally {
@@ -76,36 +61,21 @@ export default function ProductDetailActions({
     setUpdatingWishlist(true);
 
     try {
-      const response = await fetch("/api/wishlist", {
-        method: wishlistActive ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
-      });
-
-      if (response.status === 401) {
-        if (wishlistActive) {
-          removeGuestWishlistItem(productId);
-          setWishlistActive(false);
-        } else {
-          addGuestWishlistItem({
-            productId,
-            name,
-            image,
-            price,
-            notes,
-            tag: tag ?? undefined,
-            slug,
-          });
-          setWishlistActive(true);
-        }
-        return;
+      if (wishlistActive) {
+        removeGuestWishlistItem(productId);
+        setWishlistActive(false);
+      } else {
+        addGuestWishlistItem({
+          productId,
+          name,
+          image,
+          price,
+          notes,
+          tag: tag ?? undefined,
+          slug,
+        });
+        setWishlistActive(true);
       }
-
-      if (!response.ok) {
-        throw new Error("Unable to update wishlist");
-      }
-
-      setWishlistActive((active) => !active);
       window.dispatchEvent(new Event("scentora:wishlist-updated"));
     } finally {
       setUpdatingWishlist(false);

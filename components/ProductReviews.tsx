@@ -2,9 +2,7 @@
 
 import { BadgeCheck, Send, Star } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import type { ProductReviewItem, ReviewSummary } from "@/lib/review-types";
 
 type ProductReviewsProps = {
@@ -14,23 +12,12 @@ type ProductReviewsProps = {
   initialSummary: ReviewSummary;
 };
 
-type ReviewsResponse =
-  | {
-      data: ProductReviewItem[];
-      meta: ReviewSummary;
-    }
-  | {
-      error: string;
-    };
-
 export default function ProductReviews({
-  productId,
   productPath,
   initialReviews,
   initialSummary,
 }: ProductReviewsProps) {
-  const router = useRouter();
-  const { user } = useUser();
+  const user = null;
   const [reviews, setReviews] = useState(initialReviews);
   const [summary, setSummary] = useState(initialSummary);
   const [rating, setRating] = useState(5);
@@ -45,17 +32,8 @@ export default function ProductReviews({
     setError(null);
 
     try {
-      const response = await fetch(`/api/products/${productId}/reviews`, {
-        cache: "no-store",
-      });
-      const body = (await response.json()) as ReviewsResponse;
-
-      if (!response.ok || "error" in body) {
-        throw new Error("error" in body ? body.error : "Failed to load reviews");
-      }
-
-      setReviews(body.data);
-      setSummary(body.meta);
+      setReviews(initialReviews);
+      setSummary(initialSummary);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to load reviews");
     } finally {
@@ -69,26 +47,7 @@ export default function ProductReviews({
     setError(null);
 
     try {
-      const response = await fetch(`/api/products/${productId}/reviews`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rating,
-          title,
-          comment,
-        }),
-      });
-      const body = (await response.json()) as ReviewsResponse;
-
-      if (!response.ok || "error" in body) {
-        throw new Error("error" in body ? body.error : "Unable to submit review");
-      }
-
-      setTitle("");
-      setComment("");
-      setRating(5);
-      await refreshReviews();
-      router.refresh();
+      throw new Error("Reviews are available with a future storefront account service.");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to submit review");
     } finally {

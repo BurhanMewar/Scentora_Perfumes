@@ -5,7 +5,7 @@ import BestSellers from "./Bestsellers";
 
 export default function Hero() {
   return (
-    <div className="w-full xl:w-[60%] flex flex-col pt-10 md:pb-16">
+    <div className="flex w-full flex-col px-2 pt-8 sm:pt-10 md:pb-16 xl:w-[60%]">
       {/* HEADLINE */}
       <h1 className="font-heading font-semibold leading-[1.05] text-[2.2rem] sm:text-[2.6rem] md:text-[3rem] lg:text-[3.4rem] xl:text-[3.2rem] text-textPrimary tracking-tight">
         <span className="block">TIMELESS <span className="text-accent">SCENTS,</span></span>
@@ -20,7 +20,7 @@ export default function Hero() {
       </p>
 
       {/* CTA ROW */}
-      <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-8">
+      <div className="mt-8 flex flex-wrap items-center gap-4 sm:gap-6">
         
         {/* Explore button */}
         <Link

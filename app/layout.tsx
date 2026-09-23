@@ -1,6 +1,4 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
-import "@/bones/registry";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import SiteShell from "@/components/layout/SiteShell";
@@ -28,9 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="text-textPrimary">
-        <ClerkProvider>
-          <SiteShell>{children}</SiteShell>
-        </ClerkProvider>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

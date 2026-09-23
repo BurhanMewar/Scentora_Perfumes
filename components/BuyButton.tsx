@@ -29,28 +29,13 @@ export default function BuyButton({
     setLoading(true);
 
     try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity: 1 }),
+      addGuestCartItem({
+        productId,
+        name: name || "Perfume",
+        image: image || "/images/perfume-bottle.webp",
+        price: parseCurrencyAmount(price),
+        quantity: 1,
       });
-
-      if (response.status === 401) {
-        addGuestCartItem({
-          productId,
-          name: name || "Perfume",
-          image: image || "/images/perfume-bottle.webp",
-          price: parseCurrencyAmount(price),
-          quantity: 1,
-        });
-        window.dispatchEvent(new Event("scentora:cart-open"));
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Unable to add item");
-      }
-
       window.dispatchEvent(new Event("scentora:cart-updated"));
       window.dispatchEvent(new Event("scentora:cart-open"));
     } finally {
