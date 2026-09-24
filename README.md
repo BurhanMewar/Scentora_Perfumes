@@ -13,9 +13,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Frontend architecture
 
-- Product, category, and collection content lives in [`lib/data/catalog.ts`](./lib/data/catalog.ts).
-- Cart and wishlist state is kept in browser `localStorage` through [`lib/guest-cart.ts`](./lib/guest-cart.ts) and [`lib/guest-wishlist.ts`](./lib/guest-wishlist.ts).
-- Storefront copy and default contact details are defined in [`lib/site-settings.ts`](./lib/site-settings.ts).
+- Product, category, and collection content lives in [`src/lib/data/catalog.ts`](./src/lib/data/catalog.ts).
+- Cart and wishlist state is kept in browser `localStorage` through [`src/lib/guest-cart.ts`](./src/lib/guest-cart.ts) and [`src/lib/guest-wishlist.ts`](./src/lib/guest-wishlist.ts).
+- Storefront copy and default contact details are defined in [`src/lib/site-settings.ts`](./src/lib/site-settings.ts).
 - All storefront layouts use responsive Tailwind utility classes and collapse navigation, grids, forms, and product imagery for small screens.
 
 The checkout and contact forms are presentation flows that hand off to the customer/team experience without pretending to persist data locally.

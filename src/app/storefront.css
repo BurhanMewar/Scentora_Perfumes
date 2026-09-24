@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+  @theme {
+    --color-pageBg: var(--scentora-page);
+    --color-pageBgAlt: var(--scentora-surface);
+    --color-accent: var(--scentora-accent);
+    --color-accentLight: var(--scentora-accent-soft);
+    --color-textPrimary: var(--scentora-text);
+    --color-textSecondary: var(--scentora-muted);
+    --color-cardBg: var(--scentora-card);
+    --color-borderRing: var(--scentora-text);
+    --color-btnAccent: linear-gradient(90deg, var(--scentora-accent) 0%, var(--scentora-accent-soft) 100%);
+
+    --shadow-card: 0 16px 32px rgba(0, 0, 0, 0.07);
+    --shadow-img: 0 24px 40px rgba(0, 0, 0, 0.15);
+
+    --font-heading: Georgia, "Times New Roman", serif;
+    --font-body: Arial, Helvetica, sans-serif;
+    --radius-pill: 9999px;
+    --radius-soft: 12px;
+
+    --bg-hero-stripes: repeating-linear-gradient(to right,
+        rgba(0, 0, 0, 0) 0px,
+        rgba(0, 0, 0, 0) 20px,
+        rgba(0, 0, 0, 0.03) 20px,
+        rgba(0, 0, 0, 0.03) 24px);
+
+    
+  }
+
+/* smooth text rendering / reset tweaks */
+:root {
+  color-scheme: light;
+  --scentora-page: #fef8e8;
+  --scentora-surface: #fffaf0;
+  --scentora-accent: #fc8c3d;
+  --scentora-accent-soft: #ffcc70;
+  --scentora-text: #262626;
+  --scentora-muted: #6b6b6b;
+  --scentora-card: #fdefca;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* make sure body uses our body font by default */
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-color: var(--color-pageBg);
+  color: var(--color-textPrimary);
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}

@@ -2,8 +2,8 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    "./src/app/**/*.{js,ts,jsx,tsx}",
+    "./src/components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     container: {
@@ -15,13 +15,13 @@ const config: Config = {
     },
     extend: {
       colors: {
-        pageBg: "#FAEEDC", // main background
-        accent: "#F9A826", // orange
-        accentLight: "#FFCC70",
-        textPrimary: "#1A1A1A",
-        textSecondary: "#6B6B6B",
-        cardBg: "#FFF7DA",
-        borderRing: "#1A1A1A",
+        pageBg: "var(--scentora-page)",
+        accent: "var(--scentora-accent)",
+        accentLight: "var(--scentora-accent-soft)",
+        textPrimary: "var(--scentora-text)",
+        textSecondary: "var(--scentora-muted)",
+        cardBg: "var(--scentora-card)",
+        borderRing: "var(--scentora-text)",
       },
       boxShadow: {
         card: "0 16px 32px rgba(0,0,0,0.07)",
