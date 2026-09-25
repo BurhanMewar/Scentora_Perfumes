@@ -1,136 +1,143 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { DEMO_ADMIN_ACCESS_TOKEN, PermissionItem } from '@/utils/cookieConstants';
+import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Parse the request Cookie header safely.
+ */
 function parseCookies(cookieHeader: string | null): Map<string, string> {
-  const cookieMap = new Map();
-  if (cookieHeader) {
-    cookieHeader.split(';').forEach(cookie => {
-      const [name, value] = cookie.trim().split('=');
-      if (name && value) cookieMap.set(name.trim(), value.trim());
-    });
+  const cookieMap = new Map<string, string>();
+
+  if (!cookieHeader) {
+    return cookieMap;
   }
+
+  cookieHeader.split(";").forEach((cookie) => {
+    const separatorIndex = cookie.indexOf("=");
+
+    if (separatorIndex === -1) {
+      return;
+    }
+
+    const name = cookie.substring(0, separatorIndex).trim();
+    const value = cookie.substring(separatorIndex + 1).trim();
+
+    try {
+      cookieMap.set(name, decodeURIComponent(value));
+    } catch {
+      cookieMap.set(name, value);
+    }
+  });
+
   return cookieMap;
 }
 
-async function fetchPermissionsFromAPI(request: NextRequest): Promise<PermissionItem[]> {
-  try {
-    const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-    const protocol = request.headers.get('x-forwarded-proto') || 'https';
-    const apiUrl = `${protocol}://${host}/api/auth/get-permissions`;
+/**
+ * Public routes that do not require authentication.
+ */
+const publicRoutes = [
+  "/",
+  "/auth",
+  "/auth/login",
+  "/about",
+  "/best-sellers",
+  "/collections",
+  "/contact",
+  "/faqs",
+  "/guide",
+  "/privacy",
+  "/shipping-returns",
+  "/shop",
+  "/terms",
+];
 
-    const headers: Record<string, string> = {
-      Cookie: request.headers.get('cookie') || '',
-      'Content-Type': 'application/json',
-      'User-Agent': 'NextJS-Middleware-Internal',
-      'X-Internal-Request': 'middleware',
-      'X-Forwarded-For': request.headers.get('x-forwarded-for') || '',
-      'X-Forwarded-Proto': protocol,
-      'X-Forwarded-Host': host || '',
-      Origin: `${protocol}://${host}`,
-    };
-
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers,
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-    const data = await response.json();
-    if (data.success && data.permissions) return data.permissions;
-    return [];
-  } catch (err) {
-    return [];
-  }
-}
-
-
-function hasRoutePermission(pathname: string, permissions: PermissionItem[], isWalletUser = false): boolean {
-  
-  const normalize = (path: string) => (path || '').replace(/\/$/, '').toLowerCase();
-  const normalizedPath = normalize(pathname);
-  const isPublicRoute = ['/auth', '/not-permitted', '/404', '/not-found', '/favicon.ico','/logo', '/Logo', '/Asset', '/public']
-    .some(route => normalizedPath.startsWith(normalize(route)));
-  if (isPublicRoute || normalizedPath.startsWith('/_next') || normalizedPath.startsWith('/api')) return true;
- if(normalizedPath.startsWith('/topup') && isWalletUser) return true;
-  const matchPermission = (perm: PermissionItem): boolean => {
-    const permPath = normalize(perm.path || '');
-    if (permPath && normalizedPath.startsWith(permPath)) return !!perm.canView;
-    return (perm.children ?? []).some(matchPermission);
-  };
-  return permissions.some(matchPermission);
+/**
+ * Check whether the current path is public.
+ */
+function isPublicRoute(pathname: string): boolean {
+  return publicRoutes.some(
+    (route) =>
+      pathname === route ||
+      pathname.startsWith(`${route}/`)
+  );
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ✅ Prevent recursion for internal middleware calls
-  if (request.headers.get('X-Internal-Request') === 'middleware') {
-    return NextResponse.next();
-  }
+  // ---------------------------------------------------------------------------
+  // Skip Next.js internals and static files
+  // ---------------------------------------------------------------------------
 
-  // ✅ Skip permission checks for these APIs directly
-  if (pathname.startsWith('/api/auth/get-permissions')) {
-    return NextResponse.next();
-  }
-
-  const publicRoutes = [
-    '/', '/auth', '/not-permitted', '/404', '/not-found', '/favicon.ico',
-    '/logo', '/Logo', '/Asset', '/public', '/images',
-    '/shop', '/products', '/collections', '/best-sellers', '/cart', '/checkout',
-    '/wishlist', '/about', '/contact', '/faqs', '/guide', '/terms', '/privacy',
-    '/shipping-returns',
-  ];
-  const isPublicRoute = publicRoutes.some(route => (route === '/' ? pathname === '/' : pathname.startsWith(route)));
-  if (isPublicRoute || pathname.startsWith('/_next') || pathname.startsWith('/public')) {
-    return NextResponse.next();
-  }
-
-  const cookies = request.headers.get('cookie');
-  const cookieMap = parseCookies(cookies);
-
-  // Basic authentication check - token validation and refresh handled by apiMiddleware
-  const isAuthenticated = cookieMap.get('is_authenticated') === 'true';
-  const hasAccessToken = !!cookieMap.get('access_token');
-  const isValidAuth = isAuthenticated && hasAccessToken;
-  const isCmsRoute = pathname === '/cms' || pathname.startsWith('/cms/');
-
-  // The temporary demo account has full access to the local CMS/storefront flow.
   if (
-    process.env.NODE_ENV !== 'production' &&
-    isValidAuth &&
-    cookieMap.get('access_token') === DEMO_ADMIN_ACCESS_TOKEN
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.includes(".")
   ) {
     return NextResponse.next();
   }
 
-  if (!isValidAuth && !pathname.startsWith('/auth') && !pathname.startsWith('/_next') && !pathname.startsWith('/api') && pathname !== '/favicon.ico') {
-    const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-    const protocol = request.headers.get('x-forwarded-proto') || 'https';
-    const baseUrl = `${protocol}://${host}`;
-    return NextResponse.redirect(new URL('/auth/login', baseUrl));
+  // ---------------------------------------------------------------------------
+  // Public routes
+  // ---------------------------------------------------------------------------
+
+  if (isPublicRoute(pathname)) {
+    return NextResponse.next();
   }
-  
-  if (isValidAuth) {
-    try {
-      const permissions = await fetchPermissionsFromAPI(request);
-      if (!hasRoutePermission(pathname, permissions, cookieMap.get('iswallet') === 'true')) {
-        const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-        const protocol = request.headers.get('x-forwarded-proto') || 'https';
-        const baseUrl = `${protocol}://${host}`;
-        return NextResponse.redirect(new URL(isCmsRoute ? '/auth/login' : '/not-permitted', baseUrl));
-      }
-    } catch (err) {
-      return NextResponse.next();
+
+  // ---------------------------------------------------------------------------
+  // Read authentication cookies
+  // ---------------------------------------------------------------------------
+
+  const cookieHeader = request.headers.get("cookie");
+  const cookieMap = parseCookies(cookieHeader);
+
+  const isAuthenticated =
+    cookieMap.get("is_authenticated") === "true";
+
+  const hasAccessToken =
+    !!cookieMap.get("access_token");
+
+  const isValidAuth =
+    isAuthenticated && hasAccessToken;
+
+  // ---------------------------------------------------------------------------
+  // If user is not authenticated, redirect to login
+  // ---------------------------------------------------------------------------
+
+  if (!isValidAuth) {
+    const loginUrl = new URL("/auth/login", request.url);
+
+    // Preserve the page the user originally wanted.
+    if (pathname !== "/auth/login") {
+      loginUrl.searchParams.set("returnUrl", pathname);
     }
+
+    return NextResponse.redirect(loginUrl);
   }
+
+  // ---------------------------------------------------------------------------
+  // User is authenticated
+  //
+  // For now we do NOT call the old external API or permission API.
+  //
+  // Later, when NestJS backend is ready, permission checking can be added here.
+  // ---------------------------------------------------------------------------
 
   return NextResponse.next();
 }
 
+// -----------------------------------------------------------------------------
+// Middleware matcher
+// -----------------------------------------------------------------------------
+
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|api/auth/get-permissions).*)'],
+  matcher: [
+    /*
+     * Run middleware for application pages.
+     *
+     * API routes are intentionally excluded for now because the authentication
+     * APIs such as /api/auth/set-cookies should be handled directly by their
+     * route handlers.
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };

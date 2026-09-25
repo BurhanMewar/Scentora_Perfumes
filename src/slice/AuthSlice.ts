@@ -1,8 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
-import { AUTH_ENDPOINTS, API_BASE_URL } from "../constants";
-import { ApiResponse, ApiStatusCodes } from "../types";
-import apiService from "../utils/apiService";
+// OLD API imports - kept commented for future NestJS integration
+// import { AUTH_ENDPOINTS, API_BASE_URL } from "../constants";
+// import { ApiResponse, ApiStatusCodes } from "../types";
+// import apiService from "../utils/apiService";
+
 import { DEMO_ADMIN_ACCESS_TOKEN } from "../utils/cookieConstants";
 
 // Permission interface
@@ -67,12 +69,35 @@ export interface LoginCredentials {
   Password: string;
 }
 
+// Temporary Scentora demo session key
 export const DEMO_ADMIN_SESSION_KEY = "scentora.demoAdminSession.v1";
 
+// -----------------------------------------------------------------------------
+// TEMPORARY SCENTORA DEMO PERMISSIONS
+// -----------------------------------------------------------------------------
+// These permissions are only for the frontend/demo stage.
+// Later, these will come from the Scentora NestJS backend.
 const demoAdminPermissions: Permission[] = [
-  "/cms", "/admin", "/appsetting", "/user", "/role", "/permission", "/menu",
-  "/shop", "/products", "/collections", "/best-sellers", "/cart", "/checkout",
-  "/wishlist", "/about", "/contact", "/faqs", "/guide", "/terms", "/privacy",
+  "/cms",
+  "/admin",
+  "/appsetting",
+  "/user",
+  "/role",
+  "/permission",
+  "/menu",
+  "/shop",
+  "/products",
+  "/collections",
+  "/best-sellers",
+  "/cart",
+  "/checkout",
+  "/wishlist",
+  "/about",
+  "/contact",
+  "/faqs",
+  "/guide",
+  "/terms",
+  "/privacy",
   "/shipping-returns",
 ].map((path, index) => ({
   permissionId: index + 1,
@@ -81,7 +106,9 @@ const demoAdminPermissions: Permission[] = [
   canUpdate: true,
   canDelete: true,
   permissionTaskId: index + 1,
-  permissionTaskName: path.replace(/^\//, "").replaceAll("-", " "),
+  permissionTaskName: path
+    .replace(/^\//, "")
+    .replaceAll("-", " "),
   path,
   parentId: 0,
   displayOrder: index + 1,
@@ -89,8 +116,13 @@ const demoAdminPermissions: Permission[] = [
   children: [],
 }));
 
+// -----------------------------------------------------------------------------
+// TEMPORARY SCENTORA DEMO USER
+// -----------------------------------------------------------------------------
+// Used until the separate Scentora NestJS backend is created.
 function createDemoAdminUser(): User {
   const now = new Date().toISOString();
+
   return {
     userId: 1,
     username: "admin",
@@ -99,26 +131,48 @@ function createDemoAdminUser(): User {
     fullname: "Scentora Admin",
     isActive: true,
     recordStatus: 1,
+
+    // Temporary frontend/demo token
     accessToken: DEMO_ADMIN_ACCESS_TOKEN,
+
     refreshToken: "scentora-local-demo-refresh-token",
-    refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+
+    refreshTokenExpiry: new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    ).toISOString(),
+
     createdBy: 1,
     createdDate: now,
+
     updatedBy: null,
     updatedDate: null,
+
     balance: 0,
     isWallet: false,
+
     useridentifier: "scentora-demo-admin",
+
     roleId: 1,
     roleName: "Administrator",
+
     walletBalance: 0,
     currencyCode: "KWD",
+
+    merchantId: null,
+    isMerchant: false,
+    merchantName: null,
+
     permissions: demoAdminPermissions,
   };
 }
 
-// API Response wrapper for authentication
-export type AuthApiResponse = ApiResponse<User>;
+// -----------------------------------------------------------------------------
+// OLD API RESPONSE TYPE
+// -----------------------------------------------------------------------------
+// Kept commented because it will be required when NestJS API authentication
+// is implemented.
+//
+// export type AuthApiResponse = ApiResponse<User>;
 
 // Initial State
 const initialState: AuthState = {
@@ -130,170 +184,332 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Login Thunk
+// -----------------------------------------------------------------------------
+// LOGIN THUNK
+// -----------------------------------------------------------------------------
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      if (
-        process.env.NODE_ENV !== "production" &&
+      // -----------------------------------------------------------------------
+      // TEMPORARY SCENTORA FRONTEND-ONLY LOGIN
+      // -----------------------------------------------------------------------
+      // This allows the Scentora frontend to work on both localhost and Vercel
+      // without calling the old QABot API.
+      //
+      // Temporary credentials:
+      // Username: admin
+      // Password: 123456
+      //
+      // IMPORTANT:
+      // This is only for the current frontend/demo stage.
+      // Replace this with Scentora NestJS authentication later.
+      // -----------------------------------------------------------------------
+
+      const isValidDemoLogin =
         credentials.Username === "admin" &&
-        credentials.Password === "123456"
-      ) {
-        const user = createDemoAdminUser();
-        const cookieResponse = await fetch("/api/auth/set-cookies", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ ...user, rolesId: user.roleId }),
-        });
+        credentials.Password === "123456";
 
-        if (!cookieResponse.ok) {
-          throw new Error("Unable to start the local demo session");
-        }
-
-        localStorage.setItem(DEMO_ADMIN_SESSION_KEY, JSON.stringify(user));
-        localStorage.setItem("CurrencyCode", user.currencyCode);
-        return user;
+      if (!isValidDemoLogin) {
+        return rejectWithValue("Invalid username or password");
       }
 
-      const data = (await apiService.auth.login(
-        credentials
-      )) as AuthApiResponse;
-      
-      if (!data.success || data.statusCode !== ApiStatusCodes.SUCCESS) {
-        return rejectWithValue(data.message || "Login failed");
-      }
-      
+      // Create temporary Scentora admin user
+      const user = createDemoAdminUser();
+
+      // -----------------------------------------------------------------------
+      // CREATE HTTP-ONLY AUTH COOKIES
+      // -----------------------------------------------------------------------
       const cookieResponse = await fetch("/api/auth/set-cookies", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data.result),
-        credentials: "include", // Important for cookies
+        credentials: "include",
+        body: JSON.stringify({
+          ...user,
+          rolesId: user.roleId,
+        }),
       });
 
       if (!cookieResponse.ok) {
-        const errorText = await cookieResponse.text();
+        let errorMessage = "Unable to create Scentora session";
+
+        try {
+          const errorData = await cookieResponse.json();
+
+          if (errorData?.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // Ignore JSON parsing error
+        }
+
+        return rejectWithValue(errorMessage);
       }
-      localStorage.setItem("CurrencyCode", data.result.currencyCode);
+
+      // -----------------------------------------------------------------------
+      // STORE FRONTEND SESSION DATA
+      // -----------------------------------------------------------------------
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          DEMO_ADMIN_SESSION_KEY,
+          JSON.stringify(user)
+        );
+
+        localStorage.setItem("CurrencyCode", user.currencyCode);
+      }
+
+      return user;
+
+      // -----------------------------------------------------------------------
+      // OLD API LOGIN - COMMENTED FOR FUTURE NESTJS INTEGRATION
+      // -----------------------------------------------------------------------
+      /*
+      const data = (await apiService.auth.login(
+        credentials
+      )) as AuthApiResponse;
+
+      if (
+        !data.success ||
+        data.statusCode !== ApiStatusCodes.SUCCESS
+      ) {
+        return rejectWithValue(
+          data.message || "Login failed"
+        );
+      }
+
+      const cookieResponse = await fetch(
+        "/api/auth/set-cookies",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data.result),
+          credentials: "include",
+        }
+      );
+
+      if (!cookieResponse.ok) {
+        const errorText = await cookieResponse.text();
+
+        console.error(
+          "Failed to set authentication cookies:",
+          errorText
+        );
+
+        return rejectWithValue(
+          "Unable to create authentication session"
+        );
+      }
+
+      localStorage.setItem(
+        "CurrencyCode",
+        data.result.currencyCode
+      );
+
       return data.result;
+      */
     } catch (error) {
-      return rejectWithValue(error || "Network error occurred");
+      console.error("Scentora login error:", error);
+
+      return rejectWithValue(
+        error instanceof Error
+          ? error.message
+          : "Unable to sign in"
+      );
     }
   }
 );
 
-// Refresh token thunk
-// export const refreshToken = createAsyncThunk(
-//   'auth/refreshToken',
-//   async (_, { rejectWithValue, getState }) => {
-//     try {
-//       const state = getState() as { auth: AuthState };
-//       const refreshTokenEncoded = state.auth.refreshToken;
+// -----------------------------------------------------------------------------
+// OLD REFRESH TOKEN THUNK
+// -----------------------------------------------------------------------------
+// Currently disabled because Scentora does not have its NestJS backend yet.
+//
+// Later:
+//
+// Scentora FE
+//     ↓
+// NestJS Refresh Token API
+//     ↓
+// New Access Token
+//     ↓
+// /api/auth/set-cookies
+//
+// -----------------------------------------------------------------------------
 
-//       if (!refreshTokenEncoded) {
-//         return rejectWithValue('No refresh token available');
-//       }
+/*
+export const refreshToken = createAsyncThunk(
+  "auth/refreshToken",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as {
+        auth: AuthState;
+      };
 
-//       // Decode the refresh token if it's URL encoded
-//       const refreshTokenValue = decodeURIComponent(refreshTokenEncoded);
+      const refreshTokenEncoded = state.auth.refreshToken;
 
-//       // Call the backend API directly
-//       const response = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.REFRESH_TOKEN}`, {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({ refreshToken: refreshTokenValue }),
-//       });
+      if (!refreshTokenEncoded) {
+        return rejectWithValue(
+          "No refresh token available"
+        );
+      }
 
-//       if (!response.ok) {
-//         return rejectWithValue('Token refresh failed');
-//       }
+      const refreshTokenValue =
+        decodeURIComponent(refreshTokenEncoded);
 
-//       const result = await response.json();
-//       if (result.success) {
-//         // Update cookies with new token data
-//         const cookieResponse = await fetch('/api/auth/set-cookies', {
-//           method: 'POST',
-//           headers: {
-//             'Content-Type': 'application/json',
-//           },
-//           body: JSON.stringify(result.result),
-//           credentials: 'include',
-//         });
+      const response = await fetch(
+        `${API_BASE_URL}${AUTH_ENDPOINTS.REFRESH_TOKEN}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            refreshToken: refreshTokenValue,
+          }),
+        }
+      );
 
-//         if (!cookieResponse.ok) {
-//           console.error('Failed to update cookies after token refresh');
-//         } else {
-//           console.log('New cookies set successfully during token refresh');
-//         }
+      if (!response.ok) {
+        return rejectWithValue(
+          "Token refresh failed"
+        );
+      }
 
-//         // Update localStorage with new currency code
-//         if (result.result.currencyCode) {
-//           localStorage.setItem('CurrencyCode', result.result.currencyCode);
-//         }
+      const result = await response.json();
 
-//         return result.result;
-//       }
+      if (result.success) {
+        const cookieResponse = await fetch(
+          "/api/auth/set-cookies",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(result.result),
+            credentials: "include",
+          }
+        );
 
-//       return rejectWithValue('Failed to refresh token');
-//     } catch (error) {
-//       console.error('Error refreshing token:', error);
-//       return rejectWithValue(error || 'Network error occurred during token refresh');
-//     }
-//   }
-// );
+        if (!cookieResponse.ok) {
+          console.error(
+            "Failed to update cookies after token refresh"
+          );
+        }
 
-// Logout thunk
+        if (result.result.currencyCode) {
+          localStorage.setItem(
+            "CurrencyCode",
+            result.result.currencyCode
+          );
+        }
+
+        return result.result;
+      }
+
+      return rejectWithValue(
+        "Failed to refresh token"
+      );
+    } catch (error) {
+      console.error(
+        "Error refreshing token:",
+        error
+      );
+
+      return rejectWithValue(
+        error instanceof Error
+          ? error.message
+          : "Network error occurred during token refresh"
+      );
+    }
+  }
+);
+*/
+
+// -----------------------------------------------------------------------------
+// LOGOUT
+// -----------------------------------------------------------------------------
 export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
+      // Clear browser-side session
       if (typeof window !== "undefined") {
-        localStorage.removeItem(DEMO_ADMIN_SESSION_KEY);
+        localStorage.removeItem(
+          DEMO_ADMIN_SESSION_KEY
+        );
+
         localStorage.removeItem("userName");
         localStorage.removeItem("fullName");
         localStorage.removeItem("email");
         localStorage.removeItem("CurrencyCode");
       }
 
-      // Clear server-side cookies
-      const response = await fetch("/api/auth/clear-cookies", {
-        method: "POST",
-        credentials: "include", // Important for cookies
-      });
+      // Clear server-side HTTP-only cookies
+      const response = await fetch(
+        "/api/auth/clear-cookies",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
-        console.error("Failed to clear cookies");
+        console.error(
+          "Failed to clear authentication cookies"
+        );
+
+        return rejectWithValue(
+          "Failed to clear authentication session"
+        );
       }
 
       return true;
     } catch (error) {
-      console.error("Logout error:", error);
-      return rejectWithValue(error || "Failed to logout");
+      console.error(
+        "Logout error:",
+        error
+      );
+
+      return rejectWithValue(
+        error instanceof Error
+          ? error.message
+          : "Failed to logout"
+      );
     }
   }
 );
 
-// Slice
+// -----------------------------------------------------------------------------
+// SLICE
+// -----------------------------------------------------------------------------
 const authSlice = createSlice({
   name: "auth",
+
   initialState,
+
   reducers: {
-    restoreAuthSession: (state, action: PayloadAction<User>) => {
+    restoreAuthSession: (
+      state,
+      action: PayloadAction<User>
+    ) => {
       state.user = action.payload;
       state.token = action.payload.accessToken;
-      state.refreshToken = action.payload.refreshToken;
+      state.refreshToken =
+        action.payload.refreshToken;
+
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
     },
+
     clearError: (state) => {
       state.error = null;
     },
+
     clearAuth: (state) => {
       state.user = null;
       state.token = null;
@@ -302,96 +518,207 @@ const authSlice = createSlice({
       state.error = null;
     },
   },
+
   extraReducers: (builder) => {
-    // Login
+    // -------------------------------------------------------------------------
+    // LOGIN
+    // -------------------------------------------------------------------------
     builder
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.isLoading = false;
-        state.user = action.payload;
-        state.token = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+      .addCase(
+        loginUser.pending,
+        (state) => {
+          state.isLoading = true;
+          state.error = null;
+        }
+      )
 
-    // Refresh token
-    // builder
-    //   .addCase(refreshToken.pending, (state) => {
-    //     state.isLoading = true;
-    //     state.error = null;
-    //   })
-    //   .addCase(refreshToken.fulfilled, (state, action: PayloadAction<User>) => {
-    //     state.isLoading = false;
-    //     state.user = action.payload;
-    //     state.token = action.payload.accessToken;
-    //     state.refreshToken = action.payload.refreshToken;
-    //     state.isAuthenticated = true;
-    //     state.error = null;
-    //   })
-    //   .addCase(refreshToken.rejected, (state, action) => {
-    //     state.isLoading = false;
-    //     state.error = action.payload as string;
-    //     // If refresh fails, clear auth state
-    //     state.user = null;
-    //     state.token = null;
-    //     state.refreshToken = null;
-    //     state.isAuthenticated = false;
-    //   });
+      .addCase(
+        loginUser.fulfilled,
+        (
+          state,
+          action: PayloadAction<User>
+        ) => {
+          state.isLoading = false;
 
-    // Logout
+          state.user = action.payload;
+
+          state.token =
+            action.payload.accessToken;
+
+          state.refreshToken =
+            action.payload.refreshToken;
+
+          state.isAuthenticated = true;
+
+          state.error = null;
+        }
+      )
+
+      .addCase(
+        loginUser.rejected,
+        (state, action) => {
+          state.isLoading = false;
+
+          state.error =
+            (action.payload as string) ||
+            "Unable to sign in";
+        }
+      );
+
+    // -------------------------------------------------------------------------
+    // OLD REFRESH TOKEN REDUCERS
+    // -------------------------------------------------------------------------
+    /*
     builder
-      .addCase(logoutUser.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.isLoading = false;
-        state.user = null;
-        state.token = null;
-        state.refreshToken = null;
-        state.isAuthenticated = false;
-        state.error = null;
-      })
-      .addCase(logoutUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+      .addCase(
+        refreshToken.pending,
+        (state) => {
+          state.isLoading = true;
+          state.error = null;
+        }
+      )
+
+      .addCase(
+        refreshToken.fulfilled,
+        (
+          state,
+          action: PayloadAction<User>
+        ) => {
+          state.isLoading = false;
+          state.user = action.payload;
+
+          state.token =
+            action.payload.accessToken;
+
+          state.refreshToken =
+            action.payload.refreshToken;
+
+          state.isAuthenticated = true;
+          state.error = null;
+        }
+      )
+
+      .addCase(
+        refreshToken.rejected,
+        (state, action) => {
+          state.isLoading = false;
+
+          state.error =
+            action.payload as string;
+
+          state.user = null;
+          state.token = null;
+          state.refreshToken = null;
+          state.isAuthenticated = false;
+        }
+      );
+    */
+
+    // -------------------------------------------------------------------------
+    // LOGOUT
+    // -------------------------------------------------------------------------
+    builder
+      .addCase(
+        logoutUser.pending,
+        (state) => {
+          state.isLoading = true;
+        }
+      )
+
+      .addCase(
+        logoutUser.fulfilled,
+        (state) => {
+          state.isLoading = false;
+
+          state.user = null;
+          state.token = null;
+          state.refreshToken = null;
+
+          state.isAuthenticated = false;
+          state.error = null;
+        }
+      )
+
+      .addCase(
+        logoutUser.rejected,
+        (state, action) => {
+          state.isLoading = false;
+
+          state.error =
+            (action.payload as string) ||
+            "Failed to logout";
+        }
+      );
   },
 });
 
-// Export actions
-export const { clearError, clearAuth, restoreAuthSession } = authSlice.actions;
+// -----------------------------------------------------------------------------
+// ACTIONS
+// -----------------------------------------------------------------------------
+export const {
+  clearError,
+  clearAuth,
+  restoreAuthSession,
+} = authSlice.actions;
 
-// Export selectors
-export const selectAuth = (state: { auth: AuthState }) => state.auth;
-export const selectUser = (state: { auth: AuthState }) => state.auth.user;
-export const selectIsAuthenticated = (state: { auth: AuthState }) =>
+// -----------------------------------------------------------------------------
+// SELECTORS
+// -----------------------------------------------------------------------------
+export const selectAuth = (
+  state: { auth: AuthState }
+) => state.auth;
+
+export const selectUser = (
+  state: { auth: AuthState }
+) => state.auth.user;
+
+export const selectIsAuthenticated = (
+  state: { auth: AuthState }
+) =>
   state.auth.isAuthenticated;
-export const selectIsLoading = (state: { auth: AuthState }) =>
+
+export const selectIsLoading = (
+  state: { auth: AuthState }
+) =>
   state.auth.isLoading;
-export const selectError = (state: { auth: AuthState }) => state.auth.error;
-export const selectToken = (state: { auth: AuthState }) => state.auth.token;
-export const selectBalance = (state: { auth: AuthState }) =>
+
+export const selectError = (
+  state: { auth: AuthState }
+) =>
+  state.auth.error;
+
+export const selectToken = (
+  state: { auth: AuthState }
+) =>
+  state.auth.token;
+
+export const selectBalance = (
+  state: { auth: AuthState }
+) =>
   state.auth.user?.walletBalance || 0;
-export const selectIsWallet = (state: { auth: AuthState }) =>
+
+export const selectIsWallet = (
+  state: { auth: AuthState }
+) =>
   state.auth.user?.isWallet || false;
-export const selectPermissions = (state: { auth: AuthState }) =>
+
+export const selectPermissions = (
+  state: { auth: AuthState }
+) =>
   state.auth.user?.permissions || [];
 
-// Helper function to get permissions from current state with logging
-export const getPermissionsFromState = (state: {
-  auth: AuthState;
-}): Permission[] => {
-  const permissions = state.auth.user?.permissions || [];
-  return permissions;
+// -----------------------------------------------------------------------------
+// GET PERMISSIONS FROM CURRENT REDUX STATE
+// -----------------------------------------------------------------------------
+export const getPermissionsFromState = (
+  state: {
+    auth: AuthState;
+  }
+): Permission[] => {
+  return state.auth.user?.permissions || [];
 };
 
-// Export reducer
+// -----------------------------------------------------------------------------
+// EXPORT REDUCER
+// -----------------------------------------------------------------------------
 export default authSlice.reducer;
