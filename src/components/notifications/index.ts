@@ -7,3 +7,4 @@ export type { ErrorNotificationProps } from './ErrorNotification';
 
 export { default as ConfirmationDialog } from './ConfirmationDialog';
 export type { ConfirmationDialogProps } from './ConfirmationDialog';
+

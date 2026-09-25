@@ -40,3 +40,4 @@ export const previewOrders: OrderRow[] = [
   { orderNumber: "SC-1043", customer: "Laila Omar", email: "laila@example.com", phone: "+965 5550 1043", shippingAddress: "Farwaniya, Kuwait", placedAt: "2026-09-20", items: 1, total: 110, payment: "Paid", status: "Completed", lines: [{ product: "Cedar Amber", sku: "SC-CA-310", quantity: 1, unitPrice: 110 }] },
   { orderNumber: "SC-1042", customer: "Hamad Faisal", email: "hamad@example.com", phone: "+965 5550 1042", shippingAddress: "Mubarak Al-Kabeer, Kuwait", placedAt: "2026-09-19", items: 2, total: 255, payment: "Pending", status: "Processing", lines: [{ product: "Amber Dusk", sku: "SC-AD-210", quantity: 1, unitPrice: 125 }, { product: "Velvet Bloom", sku: "SC-VB-120", quantity: 1, unitPrice: 130 }] },
 ];
+

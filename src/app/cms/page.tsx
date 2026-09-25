@@ -16,17 +16,17 @@ import {
   Upload,
   UploadCloud,
 } from "lucide-react";
-import CmsEditorShell from "@/components/storefront/cms/CmsEditorShell";
+import CmsEditorShell from "@/components/cms/CmsEditorShell";
 import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
-import CmsSidebar from "@/components/storefront/cms/CmsSidebar";
-import OrderReporting from "@/components/storefront/cms/OrderReporting";
+import CmsSidebar from "@/components/cms/CmsSidebar";
+import OrderReporting from "@/components/cms/OrderReporting";
 import DynamicListing, { type ListingConfig } from "@/components/listing/DynamicListing";
 import ConfirmationDialog from "@/components/notifications/ConfirmationDialog";
-import CmsEntityDialog from "@/components/storefront/cms/CmsEntityDialog";
-import RolesEditor from "@/components/storefront/cms/RolesEditor";
+import CmsEntityDialog from "@/components/cms/CmsEntityDialog";
+import RolesEditor from "@/components/cms/RolesEditor";
 import { siteConfig } from "@/lib/site-config";
-import { cmsRolePermissions, cmsSectionPermissions, cmsNavigation, type CmsRole, type CmsSection } from "@/components/storefront/cms/cms-config";
+import { cmsRolePermissions, cmsSectionPermissions, cmsNavigation, type CmsRole, type CmsSection } from "@/components/cms/cms-config";
 
 const sampleProducts = [
   { name: "Noir Mystique", category: "Men", price: "120.00 KWD", status: "Published", image: "/images/Perfume/1.webp" },
@@ -695,3 +695,4 @@ function Step({ number, title, text }: { number: string; title: string; text: st
 function SparkIcon() {
   return <FileText className="h-5 w-5 text-accent" />;
 }
+

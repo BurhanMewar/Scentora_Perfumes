@@ -161,3 +161,4 @@ export const SUBSCRIBER_ENDPOINTS = {
   GET_SUBSCRIBER_BY_ID: "/api/Subscriber/GetSubscriberById",
   CREATE_SUBSCRIBER: "/api/Subscriber",
 };
+

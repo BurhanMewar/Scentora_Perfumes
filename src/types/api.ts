@@ -99,3 +99,4 @@ export interface RegisterData {
   password: string;
   confirmPassword: string;
 }
+

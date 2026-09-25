@@ -12,3 +12,4 @@ export default function ScentoraBrand({ showName = true, compact = false }: { sh
     </span>
   );
 }
+

@@ -1,7 +1,7 @@
 "use client";
 
 import AdminFooter from "@/components/layout/Footer";
-import CmsFooter from "@/components/storefront/cms/CmsFooter";
+import CmsFooter from "@/components/cms/CmsFooter";
 import StorefrontFooter from "@/components/storefront/common/Footer";
 
 type FooterSettings = {
@@ -23,3 +23,4 @@ export default function Footer(props: SharedFooterProps) {
   if (props.variant === "cms") return <CmsFooter />;
   return <StorefrontFooter settings={props.settings} />;
 }
+

@@ -51,3 +51,4 @@ export const translations = {
     Untitled: "بدون عنوان",
   },
 };
+

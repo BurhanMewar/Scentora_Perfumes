@@ -58,3 +58,4 @@ function InfoItem({ label, value, wide = false, highlight = false, icon: Icon }:
     <p className={`mt-0.5 break-words text-xs ${highlight ? "font-bold text-[#8c4d24]" : "text-[#4e4944]"}`}>{value}</p>
   </div>;
 }
+

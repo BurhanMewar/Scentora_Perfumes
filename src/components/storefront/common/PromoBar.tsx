@@ -12,3 +12,4 @@ export default function PromoBar({ text }: { text?: string }) {
     </div>
   );
 }
+

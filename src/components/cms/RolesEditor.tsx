@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import CmsEditorShell from "@/components/storefront/cms/CmsEditorShell";
+import CmsEditorShell from "@/components/cms/CmsEditorShell";
 import DynamicListing, { type ListingConfig } from "@/components/listing/DynamicListing";
 import ConfirmationDialog from "@/components/notifications/ConfirmationDialog";
 import { ErrorNotification, SuccessNotification } from "@/components/notifications";
@@ -108,3 +108,4 @@ export default function RolesEditor({ onSave, onPublish }: { onSave: () => void;
     </CmsEditorShell>
   );
 }
+

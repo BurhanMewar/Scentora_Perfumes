@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHeader from "@/components/layout/Header";
-import CmsHeader from "@/components/storefront/cms/CmsHeader";
+import CmsHeader from "@/components/cms/CmsHeader";
 import StorefrontHeader from "@/components/storefront/common/Navbar";
 
 type SharedHeaderProps =
@@ -35,3 +35,4 @@ export default function Header(props: SharedHeaderProps) {
 
   return <StorefrontHeader />;
 }
+

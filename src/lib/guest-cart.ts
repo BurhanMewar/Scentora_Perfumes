@@ -115,3 +115,4 @@ function isGuestCartItem(value: unknown): value is GuestCartItem {
     (typeof item.scentOption === "undefined" || typeof item.scentOption === "string")
   );
 }
+

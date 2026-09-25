@@ -43,3 +43,4 @@ export default function PremiumIngredients() {
         </section>
     );
 }
+

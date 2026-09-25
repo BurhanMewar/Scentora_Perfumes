@@ -244,3 +244,4 @@
 { code: "+260", country: "Zambia", flag: "🇿🇲", iso: "ZM", currency: "ZMW" },
 { code: "+263", country: "Zimbabwe", flag: "🇿🇼", iso: "ZW", currency: "ZWL" },
 ];
+

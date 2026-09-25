@@ -329,3 +329,4 @@ export const products: Product[] = [
     createdAt: "2025-10-11T00:00:00.000Z",
   },
 ];
+

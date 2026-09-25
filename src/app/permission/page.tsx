@@ -414,3 +414,4 @@ export default function PermissionPage() {
     </AppLayout>
   );
 }
+

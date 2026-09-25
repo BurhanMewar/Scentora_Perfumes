@@ -8,3 +8,4 @@ export { default as ProductCarousel } from "./ProductCarousel";
 export { default as Newsletter } from "./common/Newsletter";
 export { default as Navbar } from "./common/Navbar";
 export { default as Footer } from "./common/Footer";
+

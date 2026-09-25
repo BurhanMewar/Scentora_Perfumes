@@ -38,3 +38,4 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
     </p>
   );
 }
+

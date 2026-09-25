@@ -76,3 +76,4 @@ function isGuestWishlistItem(value: unknown): value is GuestWishlistItem {
     typeof item.price === "number"
   );
 }
+

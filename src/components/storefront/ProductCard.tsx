@@ -117,3 +117,4 @@ export default function ProductCard({ img, title, price, productId }: Props) {
     </article>
   );
 }
+

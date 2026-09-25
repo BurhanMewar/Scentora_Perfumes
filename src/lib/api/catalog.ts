@@ -237,3 +237,4 @@ function toQueryString(query: ProductQuery) {
   const value = params.toString();
   return value ? `?${value}` : "";
 }
+

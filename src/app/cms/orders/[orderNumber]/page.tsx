@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock3, X } from "lucide-react";
-import OrderDetails from "@/components/storefront/cms/OrderDetails";
-import OrderBackButton from "@/components/storefront/cms/OrderBackButton";
-import { formatOrderDate, previewOrders } from "@/components/storefront/cms/orders-data";
+import OrderDetails from "@/components/cms/OrderDetails";
+import OrderBackButton from "@/components/cms/OrderBackButton";
+import { formatOrderDate, previewOrders } from "@/components/cms/orders-data";
 
 export default async function OrderDetailsPage({ params }: { params: Promise<{ orderNumber: string }> }) {
   const { orderNumber } = await params;

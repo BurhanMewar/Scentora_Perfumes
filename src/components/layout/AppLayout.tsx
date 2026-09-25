@@ -119,3 +119,4 @@ export default function AppLayout({ children, onThemeToggle, isDarkMode = false 
     </Box>
   );
 }
+

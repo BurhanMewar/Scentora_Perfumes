@@ -74,3 +74,4 @@ export async function getSiteSettings() {
     home2PromoSlides: DEFAULT_HOME2_PROMO_SLIDES,
   };
 }
+

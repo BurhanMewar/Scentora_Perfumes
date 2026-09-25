@@ -60,3 +60,4 @@ export const cmsSectionPermissions: Record<CmsSection, CmsPermission> = {
 export function cmsTitle(section: CmsSection) {
   return cmsNavigation.find((item) => item.id === section)?.label ?? "Overview";
 }
+

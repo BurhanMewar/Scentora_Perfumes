@@ -36,3 +36,4 @@ function FooterItem({ text }: { text: string }) {
     </div>
   );
 }
+

@@ -102,3 +102,4 @@ const AnimatedProgressBar: React.FC<AnimatedProgressBarProps> = ({
 };
 
 export default AnimatedProgressBar;
+

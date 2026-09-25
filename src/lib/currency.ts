@@ -11,3 +11,4 @@ export function formatKwd(value: string | number) {
     currency: siteConfig.currency,
   }).format(parseCurrencyAmount(value));
 }
+

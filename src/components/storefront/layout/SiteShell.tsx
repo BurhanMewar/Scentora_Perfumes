@@ -7,3 +7,4 @@ export default async function SiteShell({ children }: { children: ReactNode }) {
 
   return <SiteShellClient settings={settings}>{children}</SiteShellClient>;
 }
+

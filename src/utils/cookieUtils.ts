@@ -241,3 +241,4 @@ export const getPermissionsFromCookie = async (): Promise<PermissionItem[]> => {
     return [];
   }
 };
+
