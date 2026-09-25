@@ -5,20 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store";
 import DynamicButton from "@/components/DynamicButton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  Typography,
-  Paper,
   IconButton,
 } from "@mui/material";
 import DynamicListing, {
   ListingConfig,
   ListingColumn,
-  ListingAction,
 } from "../../components/listing/DynamicListing";
 import {
   fetchPermissions,
@@ -181,6 +172,18 @@ export default function PermissionPage() {
       open: false,
     }));
   };
+  const permissionDepth = new Map<number, number>();
+  const setPermissionDepth = (parentId: number, depth = 0, visited = new Set<number>()) => {
+    if (visited.has(parentId)) return;
+    const nextVisited = new Set(visited).add(parentId);
+    formData.permissions.filter((item) => parentId === 0 ? item.parentId === 0 || item.parentId === null : item.parentId === parentId)
+      .forEach((item) => {
+        permissionDepth.set(item.permissionTaskId, depth);
+        setPermissionDepth(item.permissionTaskId, depth + 1, nextVisited);
+      });
+  };
+  setPermissionDepth(0);
+
   const columns: ListingColumn<Permission>[] = [
     {
       key: "permissionTaskName",
@@ -193,7 +196,7 @@ export default function PermissionPage() {
         const isTopLevel = row?.parentId === 0;
 
         return (
-          <div style={{ display: "flex", alignItems: "center", gap: "1px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1px", paddingLeft: `${(permissionDepth.get(row.permissionTaskId) ?? 0) * 18}px` }}>
             <span style={{ fontWeight: 500 }}>{row.permissionTaskName}</span>
             {isTopLevel && hasChildren && (
               <IconButton
@@ -321,71 +324,27 @@ export default function PermissionPage() {
     },
   ];
   const orderedPermissions = [...formData.permissions];
-  const renderRows = (
-    parentId: number = 0,
-    level = 0,
-    visited: Set<number> = new Set()
-  ): React.ReactNode => {
-    // prevent cycles
-    if (visited.has(parentId)) {
-      console.warn("Circular reference detected for parentId:", parentId);
-      return null;
-    }
-    visited.add(parentId);
-
-    return filters.roleId ? (
-      orderedPermissions
-        .filter((item) => {
-          // Handle top-level items: parentId === 0 OR parentId === null
-          if (parentId === 0) {
-            return item?.parentId === 0 || item?.parentId === null;
-          }
-          // Handle child items: exact match
-          return item?.parentId === parentId;
-        })
-        .map((row) => (
-          <React.Fragment key={row.permissionTaskId}>
-            <TableRow
-              sx={{ bgcolor: row.parentId ? "action.selected" : "#fff" }}
-            >
-              {columns.map((col, index) => (
-                <TableCell
-                  key={col.key as string}
-                  sx={{
-                    pl: col.key === "permissionTaskName" ? level * 4 : 0, // MUI spacing units
-                    fontWeight: 600,
-                  }}
-                >
-                  {col.render
-                    ? col.render(
-                        (row as any)[col.key as keyof Permission],
-                        row,
-                        index
-                      )
-                    : (row as any)[col.key as keyof Permission]}
-                </TableCell>
-              ))}
-            </TableRow>
-
-            {!collapsed[row.permissionTaskId] &&
-              renderRows(row.permissionTaskId, level + 1, new Set(visited))}
-          </React.Fragment>
-        ))
-    ) : (
-      <TableRow>
-        <TableCell colSpan={columns.length} align="center">
-          Please select a role first.
-        </TableCell>
-      </TableRow>
-    );
+  const visiblePermissions: Permission[] = [];
+  const appendVisiblePermissions = (parentId = 0, visited = new Set<number>()) => {
+    if (visited.has(parentId)) return;
+    const nextVisited = new Set(visited).add(parentId);
+    orderedPermissions
+      .filter((item) => parentId === 0 ? item.parentId === 0 || item.parentId === null : item.parentId === parentId)
+      .forEach((item) => {
+        visiblePermissions.push(item);
+        if (!collapsed[item.permissionTaskId]) appendVisiblePermissions(item.permissionTaskId, nextVisited);
+      });
   };
+  appendVisiblePermissions();
 
   const listingConfig: ListingConfig<Permission> = {
     title: "Permission",
     description: "Manage system permission for each role",
     columns,
-    searchable: false,
+    searchable: true,
+    searchPlaceholder: "Search permissions",
     showFilter: false, // No filters for roles
+    tableMinWidth: 720,
     emptyState: {
       title: "No Roles Found",
       description: filters.roleId
@@ -430,22 +389,9 @@ export default function PermissionPage() {
             helperText={errors.roleId || ""}
           />
         </Box>
-        <TableContainer
-          component={Paper}
-          variant="outlined"
-          sx={{ p: 2, mt: 2 }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                {columns.map((col) => (
-                  <TableCell key={col.key as string}>{col.label}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>{renderRows()}</TableBody>
-          </Table>
-        </TableContainer>
+        <div className="mt-2">
+          <DynamicListing config={listingConfig} data={filters.roleId ? visiblePermissions : []} loading={isLoading} error={error} />
+        </div>
       </div>
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
         <DynamicButton

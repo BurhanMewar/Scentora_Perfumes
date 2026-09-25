@@ -48,14 +48,14 @@ async function fetchPermissionsFromAPI(request: NextRequest): Promise<Permission
 }
 
 
-function hasRoutePermission(pathname: string, permissions: PermissionItem[]): boolean {
+function hasRoutePermission(pathname: string, permissions: PermissionItem[], isWalletUser = false): boolean {
   
   const normalize = (path: string) => (path || '').replace(/\/$/, '').toLowerCase();
   const normalizedPath = normalize(pathname);
   const isPublicRoute = ['/auth', '/not-permitted', '/404', '/not-found', '/favicon.ico','/logo', '/Logo', '/Asset', '/public']
     .some(route => normalizedPath.startsWith(normalize(route)));
   if (isPublicRoute || normalizedPath.startsWith('/_next') || normalizedPath.startsWith('/api')) return true;
- if(normalizedPath.startsWith('/topup') && localStorage.getItem('iswallet') === 'true') return true;
+ if(normalizedPath.startsWith('/topup') && isWalletUser) return true;
   const matchPermission = (perm: PermissionItem): boolean => {
     const permPath = normalize(perm.path || '');
     if (permPath && normalizedPath.startsWith(permPath)) return !!perm.canView;
@@ -96,6 +96,7 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = cookieMap.get('is_authenticated') === 'true';
   const hasAccessToken = !!cookieMap.get('access_token');
   const isValidAuth = isAuthenticated && hasAccessToken;
+  const isCmsRoute = pathname === '/cms' || pathname.startsWith('/cms/');
 
   // The temporary demo account has full access to the local CMS/storefront flow.
   if (
@@ -116,11 +117,11 @@ export async function middleware(request: NextRequest) {
   if (isValidAuth) {
     try {
       const permissions = await fetchPermissionsFromAPI(request);
-      if (!hasRoutePermission(pathname, permissions)) {
+      if (!hasRoutePermission(pathname, permissions, cookieMap.get('iswallet') === 'true')) {
         const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
         const protocol = request.headers.get('x-forwarded-proto') || 'https';
         const baseUrl = `${protocol}://${host}`;
-        return NextResponse.redirect(new URL('/not-permitted', baseUrl));
+        return NextResponse.redirect(new URL(isCmsRoute ? '/auth/login' : '/not-permitted', baseUrl));
       }
     } catch (err) {
       return NextResponse.next();

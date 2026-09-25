@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import Loader from '@/components/Loader/loader';
 
 interface Permission {
   module: number;
@@ -34,6 +34,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const router = useRouter();
   const { isAuthenticated, isLoading } = useSelector((state: any) => state.auth);
   const [accessState, setAccessState] = useState<'loading' | 'granted' | 'denied'>('loading');
+
+  if (isLoading || accessState === 'loading') {
+    return <Loader text="Securing your Scentora account..." />;
+  }
 
   // Check access - single effect with minimal dependencies
   useEffect(() => {
@@ -113,25 +117,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       isMounted = false;
     };
   }, [isAuthenticated, isLoading]); // Minimal dependencies
-
-  // Show loading spinner
-  // if (accessState === 'loading') {
-  //   return (
-  //     <></>
-  //     // <Box 
-  //     //   sx={{ 
-  //     //     display: 'flex', 
-  //     //     flexDirection: 'column',
-  //     //     alignItems: 'center', 
-  //     //     justifyContent: 'center', 
-  //     //     minHeight: '200px',
-  //     //     gap: 2
-  //     //   }}
-  //     // >
-  //     //   <CircularProgress size={40} />
-  //     // </Box>
-  //   );
-  // }
 
   // Show fallback or redirect if no access
   if (accessState === 'denied') {

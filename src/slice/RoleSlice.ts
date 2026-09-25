@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { ApiResponse, ApiStatusCodes } from "../types";
 import apiService from "../utils/apiService";
+import { DEMO_ADMIN_ACCESS_TOKEN } from "@/utils/cookieConstants";
+import { DEMO_ADMIN_SESSION_KEY } from "@/slice/AuthSlice";
 
 // Types
 export interface Role {
@@ -30,6 +32,7 @@ export interface UpdateRoleData {
 
 export interface RoleState {
   roles: Role[];
+  demoInitialized: boolean;
   currentRole: Role | null;
   isLoading: boolean;
   isListingLoading: boolean;
@@ -43,9 +46,27 @@ export interface RoleState {
 export type RoleApiResponse = ApiResponse<Role>;
 export type RoleListApiResponse = ApiResponse<Role[]>;
 
+const demoRoles: Role[] = [
+  { id: 1, rolename: "Administrator", status: 1, createdDate: "2026-01-01T00:00:00.000Z", createdBy: "Scentora Admin", updatedDate: null, updatedBy: null, botsId: "" },
+  { id: 2, rolename: "Editor", status: 1, createdDate: "2026-01-01T00:00:00.000Z", createdBy: "Scentora Admin", updatedDate: null, updatedBy: null, botsId: "" },
+  { id: 3, rolename: "Catalog manager", status: 1, createdDate: "2026-01-01T00:00:00.000Z", createdBy: "Scentora Admin", updatedDate: null, updatedBy: null, botsId: "" },
+];
+
+function isDemoSession(getState: () => unknown) {
+  if ((getState() as { auth?: { token?: string | null } }).auth?.token === DEMO_ADMIN_ACCESS_TOKEN) return true;
+  if (typeof window === "undefined") return false;
+  try {
+    const savedSession = window.localStorage.getItem(DEMO_ADMIN_SESSION_KEY);
+    return savedSession ? JSON.parse(savedSession)?.accessToken === DEMO_ADMIN_ACCESS_TOKEN : false;
+  } catch {
+    return false;
+  }
+}
+
 // Initial State
 const initialState: RoleState = {
   roles: [],
+  demoInitialized: false,
   currentRole: null,
   isLoading: false,
   isListingLoading: false,
@@ -58,8 +79,12 @@ const initialState: RoleState = {
 // Async Thunks
 export const fetchRoles = createAsyncThunk(
   "role/fetchRoles",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      if (isDemoSession(getState)) {
+        const roleState = (getState() as { role?: RoleState }).role;
+        return roleState?.demoInitialized ? (roleState.roles ?? []) : demoRoles;
+      }
       console.log("Fetching roles...");
 
       const data = (await apiService.role.getRoles()) as RoleListApiResponse;
@@ -78,8 +103,13 @@ export const fetchRoles = createAsyncThunk(
 
 export const fetchRoleById = createAsyncThunk(
   "role/fetchRoleById",
-  async (id: string, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue, getState }) => {
     try {
+      if (isDemoSession(getState)) {
+        const role = ((getState() as { role?: RoleState }).role?.roles ?? demoRoles).find((item) => item.id === Number(id));
+        if (!role) return rejectWithValue("Role not found");
+        return role;
+      }
       console.log("Fetching role by ID:", id);
 
       const data = (await apiService.role.getRoleById(id)) as RoleApiResponse;
@@ -97,8 +127,21 @@ export const fetchRoleById = createAsyncThunk(
 
 export const createRole = createAsyncThunk(
   "role/createRole",
-  async (roleData: CreateRoleData, { rejectWithValue }) => {
+  async (roleData: CreateRoleData, { rejectWithValue, getState }) => {
     try {
+      if (isDemoSession(getState)) {
+        const roles = (getState() as { role?: RoleState }).role?.roles ?? demoRoles;
+        return {
+          id: Math.max(0, ...roles.map((item) => item.id)) + 1,
+          rolename: roleData.rolename,
+          status: roleData.status,
+          createdDate: new Date().toISOString(),
+          createdBy: roleData.createdBy || "Scentora Admin",
+          updatedDate: null,
+          updatedBy: null,
+          botsId: Array.isArray(roleData.botsId) ? roleData.botsId.join(",") : String(roleData.botsId ?? ""),
+        } satisfies Role;
+      }
       console.log("Creating role:", roleData);
 
       const data = (await apiService.role.createRole(
@@ -119,8 +162,19 @@ export const createRole = createAsyncThunk(
 
 export const updateRole = createAsyncThunk(
   "role/updateRole",
-  async (roleData: UpdateRoleData, { rejectWithValue }) => {
+  async (roleData: UpdateRoleData, { rejectWithValue, getState }) => {
     try {
+      if (isDemoSession(getState)) {
+        const role = ((getState() as { role?: RoleState }).role?.roles ?? demoRoles).find((item) => item.id === roleData.id);
+        if (!role) return rejectWithValue("Role not found");
+        return {
+          ...role,
+          rolename: roleData.rolename,
+          status: roleData.status,
+          botsId: Array.isArray(roleData.botsId) ? roleData.botsId.join(",") : String(roleData.botsId ?? ""),
+          updatedDate: new Date().toISOString(),
+        } satisfies Role;
+      }
       console.log("Updating role:", roleData);
 
       const data = (await apiService.role.updateRole(
@@ -141,8 +195,9 @@ export const updateRole = createAsyncThunk(
 
 export const deleteRole = createAsyncThunk(
   "role/deleteRole",
-  async (id: string, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue, getState }) => {
     try {
+      if (isDemoSession(getState)) return id;
       console.log("Deleting role:", id);
 
       const data = await apiService.role.deleteRole(id);
@@ -202,6 +257,7 @@ const roleSlice = createSlice({
       })
       .addCase(fetchRoles.fulfilled, (state, action: PayloadAction<Role[]>) => {
         state.isListingLoading = false;
+        state.demoInitialized = true;
 
         // Handle the simple array response
         const roles: Role[] = Array.isArray(action.payload)
@@ -261,6 +317,7 @@ const roleSlice = createSlice({
         state.isRolesLoading = false;
 
         state.currentRole = action.payload;
+        state.roles = state.roles.map((role) => role.id === action.payload.id ? action.payload : role);
 
         state.updateError = null;
       })

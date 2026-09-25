@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Loader from "@/components/Loader/loader";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
   getGuestCart,
@@ -96,7 +97,7 @@ export default function CartView() {
         </div>
 
         {loading ? (
-          <p className="py-12 text-center text-textSecondary">Loading cart...</p>
+          <Loader fullscreen={false} text="Loading your cart..." />
         ) : items.length === 0 ? (
           <div className="rounded-lg border border-black/10 bg-white p-8 text-center">
             <p className="mb-5 text-textSecondary">Your cart is empty.</p>

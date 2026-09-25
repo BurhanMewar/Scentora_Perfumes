@@ -30,8 +30,7 @@ import { updateRole, Role, UpdateRoleData } from "../../../slice/RoleSlice";
 import DynamicButton from "../../../components/DynamicButton";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { MultiSelectDropdown } from "@/components";
-import { fetchBotDropdown } from "@/slice/DropdownSlice";
+import Loader from "@/components/Loader/loader";
 export interface RoleDetailModalProps {
   open: boolean;
   onClose: () => void;
@@ -62,14 +61,8 @@ export default function RoleDetailModal({
   const [errors, setErrors] = useState<
     Partial<Record<keyof UpdateRoleData, string>>
   >({});
-  const { botDropdown } = useSelector((state: RootState) => state.dropdown);
   // Use currentRole from Redux store if available, otherwise fall back to passed role prop
   const displayRole = currentRole;
-  useEffect(() => {
-    if (open) {
-      dispatch(fetchBotDropdown());
-    }
-  }, [dispatch, open]);
   // Initialize form data when role changes
   useEffect(() => {
     if (!displayRole) return;
@@ -145,10 +138,6 @@ export default function RoleDetailModal({
 
     if (!formData.rolename.trim()) {
       newErrors.rolename = "Role name is required";
-    }
-
-    if (!formData.botsId || formData.botsId.length === 0) {
-      newErrors.botsId = "Please select a valid bot";
     }
 
     setErrors(newErrors);
@@ -248,7 +237,7 @@ export default function RoleDetailModal({
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="md"
+      maxWidth="sm"
       fullWidth
       BackdropProps={{
         sx: {
@@ -260,7 +249,7 @@ export default function RoleDetailModal({
         sx: {
           borderRadius: isMobile ? 0 : 3,
           maxHeight: isMobile ? "100%" : "75vh",
-          maxWidth: isMobile ? "100%" : "800px",
+          maxWidth: isMobile ? "100%" : "560px",
           width: isMobile ? "100%" : "100%",
           boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
         },
@@ -276,20 +265,20 @@ export default function RoleDetailModal({
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box>
-              <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                {isEditMode ? "Edit Role" : "Role Details"}
+              <Typography variant="h6" component="div" sx={{ fontWeight: 600, fontFamily: "Georgia, serif", color: "#30251d" }}>
+                {isEditMode ? "Edit role" : "Role details"}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ mt: 0.5, color: "#796b5c" }}>
                 {isLoading
                   ? "Loading role details..."
                   : isEditMode
-                  ? "Update role information"
+                  ? "Update the role information used by your CMS."
                   : "View role information"}
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {!isEditMode && !isLoading && (
+          {!isEditMode && !isLoading ? <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {!isEditMode && (
               <IconButton
                 onClick={handleToggleEdit}
                 size="small"
@@ -298,49 +287,20 @@ export default function RoleDetailModal({
                 <EditIcon />
               </IconButton>
             )}
-            <IconButton onClick={handleClose} size="small" disabled={isLoading}>
+            <IconButton onClick={handleClose} size="small">
               <CloseIcon color="primary" />
             </IconButton>
-          </Box>
+          </Box> : null}
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent sx={{ display: "grid", gap: 2, px: 3, pt: "36px !important", pb: 3 }}>
         {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <Typography variant="body2" color="text.secondary">
-              Loading role details...
-            </Typography>
-          </Box>
+          <Loader fullscreen={false} text="Loading role details..." />
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Role Information */}
             <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 2,
-                  mb: 2,
-                  mt: 2,
-                }}
-              >
-                <Box sx={{ flex: 1 }}>
-                  <MultiSelectDropdown
-                    label="Select Bot"
-                    options={botDropdown.map((bot) => ({
-                      label: bot.name,
-                      value: bot.id,
-                    }))}
-                    onChange={(newValues) => handleChange("botsId")(newValues)} // pass array
-                    value={formData?.botsId || []} // must be array
-                    error={!!errors.botsId}
-                    helperText={errors.botsId ? String(errors.botsId) : ""}
-                    disabled={loading || !isEditMode}
-                    required
-                  />
-                </Box>
-              </Box>
               <Box
                 sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 2 }}
               >
@@ -360,9 +320,18 @@ export default function RoleDetailModal({
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, gap: 2 }}>
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: "1px solid rgba(161,93,45,0.14)", backgroundColor: "#fffdf8" }}>
         {isEditMode && (
           <>
+            <DynamicButton
+              onClick={handleClose}
+              disabled={loading}
+              variant="outlined"
+              size="small"
+              sx={{ minHeight: 40, minWidth: 96, borderRadius: 2, borderColor: "rgba(161,93,45,0.35)", color: "#8c4d24", "&:hover": { borderColor: "#a15d2d", backgroundColor: "#fcf2e6" } }}
+            >
+              Cancel
+            </DynamicButton>
             <DynamicButton
               onClick={handleSubmit}
               disabled={loading}
@@ -370,6 +339,7 @@ export default function RoleDetailModal({
               size="medium"
               loading={loading}
               loadingText="Updating..."
+              sx={{ minHeight: 40, minWidth: 120, borderRadius: 2, backgroundColor: "#211710", color: "#fffaf0", "&:hover": { backgroundColor: "#8c4d24" } }}
             >
               Update
             </DynamicButton>

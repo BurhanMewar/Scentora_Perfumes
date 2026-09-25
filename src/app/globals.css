@@ -122,6 +122,96 @@
   letter-spacing: 0.2em;
 }
 
+.login-scent-haze {
+  position: absolute;
+  z-index: 0;
+  width: 15rem;
+  height: 5rem;
+  border: 1px solid rgba(255, 204, 112, 0.16);
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(252, 140, 61, 0.13), rgba(255, 250, 240, 0.07), transparent);
+  filter: blur(10px);
+  pointer-events: none;
+  animation: login-scent-drift 9s ease-in-out infinite alternate;
+}
+
+.login-scent-haze--one {
+  right: -4rem;
+  bottom: 5rem;
+  transform: rotate(-24deg);
+}
+
+.login-scent-haze--two {
+  right: 2rem;
+  bottom: 8rem;
+  width: 10rem;
+  height: 3rem;
+  opacity: 0.65;
+  animation-delay: -4s;
+}
+
+.login-scent-bottle {
+  position: absolute;
+  right: 3.5rem;
+  bottom: 2.5rem;
+  z-index: 0;
+  display: none;
+  width: 6rem;
+  height: 8.5rem;
+  border: 1px solid rgba(255, 250, 240, 0.38);
+  border-radius: 1.6rem 1.6rem 1.2rem 1.2rem;
+  background: linear-gradient(115deg, rgba(255,255,255,0.16), rgba(255,255,255,0.025) 42%, rgba(252,140,61,0.25)), linear-gradient(180deg, rgba(255,204,112,0.13), rgba(252,140,61,0.2));
+  box-shadow: inset 7px 0 12px rgba(255,255,255,0.08), 0 0 45px rgba(252,140,61,0.12);
+  transform: rotate(7deg);
+  pointer-events: none;
+}
+
+.login-scent-bottle::before {
+  position: absolute;
+  top: -1.55rem;
+  left: 1.65rem;
+  width: 2.7rem;
+  height: 1.7rem;
+  border: 1px solid rgba(255, 204, 112, 0.42);
+  border-radius: 0.45rem 0.45rem 0.15rem 0.15rem;
+  background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,204,112,0.32), rgba(255,255,255,0.08));
+  content: "";
+}
+
+.login-scent-bottle::after {
+  position: absolute;
+  top: -0.55rem;
+  left: 2.05rem;
+  width: 1.9rem;
+  height: 0.8rem;
+  border: 1px solid rgba(255, 250, 240, 0.28);
+  background: rgba(255, 250, 240, 0.12);
+  content: "";
+}
+
+.login-scent-bottle span {
+  position: absolute;
+  top: 42%;
+  left: 14%;
+  width: 72%;
+  height: 1.8rem;
+  border: 1px solid rgba(255, 204, 112, 0.42);
+  background: rgba(33, 23, 16, 0.25);
+}
+
+@keyframes login-scent-drift {
+  from { opacity: 0.35; translate: 0 8px; rotate: -4deg; }
+  to { opacity: 0.85; translate: -12px -10px; rotate: 4deg; }
+}
+
+@media (min-width: 768px) {
+  .login-scent-bottle { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-scent-haze { animation: none; }
+}
+
 @keyframes scent-loader-spin {
   to { transform: rotate(360deg); }
 }
@@ -357,4 +447,44 @@
 
 @media (prefers-reduced-motion: reduce) {
   .scent-orbit, .scent-glow, .scent-loader-orbit, .scent-loader-spark { animation: none; }
+}
+
+/* At high zoom or phone-sized viewports, let the CMS document grow and scroll. */
+@media (max-width: 760px), (max-height: 700px) {
+  .cms-app-shell {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
+  .cms-app-layout {
+    height: auto !important;
+    min-height: 100dvh;
+    align-items: stretch;
+  }
+  .cms-app-content {
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
+  .cms-orders-content {
+    flex: none !important;
+    overflow: visible !important;
+  }
+  .cms-orders-report,
+  .dynamic-listing-fill {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+  .dynamic-listing-fill > .MuiCard-root,
+  .dynamic-listing-fill > .MuiCard-root > .MuiCardContent-root {
+    flex: none !important;
+    min-height: 320px;
+    overflow: visible;
+  }
+  .dynamic-listing-fill .MuiTableContainer-root {
+    height: min(55vh, 520px) !important;
+    max-height: min(55vh, 520px) !important;
+    min-height: 240px;
+    overflow: auto !important;
+  }
 }

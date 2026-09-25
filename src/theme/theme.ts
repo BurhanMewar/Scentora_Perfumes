@@ -235,6 +235,44 @@ const components = {
       },
     },
   },
+  MuiDialog: {
+    styleOverrides: {
+      paper: {
+        border: '1px solid rgba(161, 93, 45, 0.2) !important',
+        borderRadius: '16px !important',
+        backgroundColor: '#fffaf0 !important',
+        color: '#211710',
+        boxShadow: '0 18px 40px rgba(33, 23, 16, 0.2) !important',
+        overflow: 'hidden',
+      },
+    },
+  },
+  MuiDialogTitle: {
+    styleOverrides: {
+      root: {
+        padding: '16px 24px 12px !important',
+        borderBottom: '1px solid rgba(161, 93, 45, 0.16) !important',
+        background: 'linear-gradient(105deg, #fffaf0, #f7ecd8) !important',
+        color: '#30251d',
+      },
+    },
+  },
+  MuiDialogContent: {
+    styleOverrides: {
+      root: {
+        color: '#39291e',
+      },
+    },
+  },
+  MuiDialogActions: {
+    styleOverrides: {
+      root: {
+        gap: '8px',
+        borderTop: '1px solid rgba(161, 93, 45, 0.14)',
+        backgroundColor: '#fffdf8',
+      },
+    },
+  },
   MuiTextField: {
     styleOverrides: {
       root: {

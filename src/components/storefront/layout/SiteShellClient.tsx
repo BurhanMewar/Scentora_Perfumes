@@ -26,7 +26,7 @@ export default function SiteShellClient({
 }) {
   const pathname = usePathname();
   const legacyAdminRoutes = ["/auth", "/user", "/role", "/permission", "/menu", "/appsetting"];
-  const isLegacyAdminRoute = pathname === "/cms" || legacyAdminRoutes.some(
+  const isLegacyAdminRoute = pathname === "/cms" || pathname.startsWith("/cms/") || legacyAdminRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   ) || (pathname.startsWith("/admin") && !pathname.startsWith("/admin/banner"));
 

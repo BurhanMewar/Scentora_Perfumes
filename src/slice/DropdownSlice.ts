@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { ApiResponse, ApiStatusCodes } from "../types";
 import apiService from "../utils/apiService";
+import { DEMO_ADMIN_ACCESS_TOKEN } from "@/utils/cookieConstants";
+import { DEMO_ADMIN_SESSION_KEY } from "@/slice/AuthSlice";
 
 export interface DropdownProps {
   id: number;
@@ -124,8 +126,19 @@ export const fetchPermissionTasksDropdown = createAsyncThunk(
 );
 export const fetchBotDropdown = createAsyncThunk(
   "bot/fetchBotDropdown",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      const token = (getState() as { auth?: { token?: string | null } }).auth?.token;
+      let isDemo = token === DEMO_ADMIN_ACCESS_TOKEN;
+      if (!isDemo && typeof window !== "undefined") {
+        try {
+          const savedSession = window.localStorage.getItem(DEMO_ADMIN_SESSION_KEY);
+          isDemo = savedSession ? JSON.parse(savedSession)?.accessToken === DEMO_ADMIN_ACCESS_TOKEN : false;
+        } catch {
+          isDemo = false;
+        }
+      }
+      if (isDemo) return [];
       console.log("Fetching bot...");
 
       const data =

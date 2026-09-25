@@ -320,6 +320,7 @@ export default function PermissionTaskPage() {
   };
   const config: ListingConfig<PermissionTask> = {
     title: "Menu Management",
+    fillAvailableHeight: true,
     columns,
     actions,
     primaryAction: {

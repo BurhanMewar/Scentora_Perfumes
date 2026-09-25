@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppSelector } from '../../store/hooks';
 import LoginPage from '../auth/login/page';
-import { CircularProgress } from '@mui/material';
+import Loader from '@/components/Loader/loader';
 export default function Home() {
   
   const { isAuthenticated, user } = useAppSelector((state: any) => state.auth) as {
@@ -21,18 +21,7 @@ export default function Home() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '18px',
-        color: '#666'
-      }}>
-        <CircularProgress/>
-      </div>
-    );
+    return <Loader text="Preparing your Scentora workspace..." />;
   }
 
   if (isAuthenticated && user) {

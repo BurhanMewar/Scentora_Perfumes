@@ -5,12 +5,14 @@ export default function CmsEditorShell({
   title,
   description,
   children,
+  headerAction,
   onSave,
   onPublish,
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  headerAction?: ReactNode;
   onSave: () => void;
   onPublish?: () => void;
 }) {
@@ -23,6 +25,7 @@ export default function CmsEditorShell({
           <p className="mt-2 text-sm text-textSecondary">{description}</p>
         </div>
         <div className="flex w-full shrink-0 gap-2 sm:w-auto">
+          {headerAction}
           <button type="button" onClick={onSave} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-black/15 bg-white px-3 text-xs font-semibold text-textPrimary hover:bg-black/5 sm:flex-none sm:px-4 sm:text-sm">
             <Save className="h-4 w-4" /> Save draft
           </button>

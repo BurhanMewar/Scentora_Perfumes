@@ -238,6 +238,7 @@ const handleCloseErrorNotification = () => {
   // Configuration for the dynamic listing
   const listingConfig: ListingConfig<Role> = {
     title: "Role",
+    fillAvailableHeight: true,
     columns,
     actions,
     primaryAction: {

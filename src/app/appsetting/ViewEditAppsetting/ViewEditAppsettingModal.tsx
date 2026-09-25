@@ -29,6 +29,7 @@ import { updateAppsetting, Appsetting, UpdateAppsettingData } from "../../../sli
 import DynamicButton from "../../../components/DynamicButton";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
+import Loader from "@/components/Loader/loader";
 
 export interface AppsettingDetailModalProps {
   open: boolean;
@@ -279,11 +280,7 @@ useEffect(() => {
 
       <DialogContent sx={{ pt: 2 }}>
         {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <Typography variant="body2" color="text.secondary">
-              Loading appsetting details...
-            </Typography>
-          </Box>
+          <Loader fullscreen={false} text="Loading app settings..." />
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* Appsetting Information */}

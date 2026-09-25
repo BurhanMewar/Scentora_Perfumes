@@ -9,20 +9,13 @@ import {
   TextField,
   Box,
   Typography,
-  FormControlLabel,
   useMediaQuery,
   useTheme,
-  Switch,
-  IconButton,
-  Divider,
 } from "@mui/material";
-import { fetchBotDropdown } from "@/slice/DropdownSlice";
-import { Close as CloseIcon } from "@mui/icons-material";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../store";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../../store";
 import { createRole, CreateRoleData } from "../../../slice/RoleSlice";
 import DynamicButton from "../../../components/DynamicButton";
-import { MultiSelectDropdown } from "@/components";
 export interface CreateRoleModalProps {
   open: boolean;
   onClose: () => void;
@@ -46,12 +39,8 @@ export default function CreateRoleModal({
     botsId: [],
     status: 1,
   });
-  const botDropdown = useSelector(
-    (state: RootState) => state.dropdown.botDropdown
-  );
   // Form validation state
   const [errors, setErrors] = useState<{
-    botsId?: string;
     rolename?: string;
     createdBy?: string;
     status?: number;
@@ -62,24 +51,17 @@ export default function CreateRoleModal({
       setFormData({
         rolename: "",
         createdBy: "", // This should come from the logged-in user
-        botsId: "",
+        botsId: [],
         status: 1,
       });
       setErrors({
         rolename: undefined,
         createdBy: undefined, // This should come from the logged-in user
-        botsId: undefined,
         status: undefined,
       });
       onClose();
     }
   };
-  useEffect(() => {
-    if(open){
-       dispatch(fetchBotDropdown());
-    }
-   
-  }, [open,dispatch]);
   const handleInputChange =
     (field: keyof CreateRoleData) => (eventOrValue: any) => {
       let value: string | boolean | number;
@@ -131,17 +113,12 @@ export default function CreateRoleModal({
       rolename?: string;
       isMerchant?: boolean;
       createdBy?: string;
-      botsId?: string;
       masterRole?: number;
     } = {};
 
     if (!formData?.rolename.trim()) {
       newErrors.rolename = "Role name is required";
     } 
-    if( formData.botsId.length === 0){
-      newErrors.botsId = "Please select a valid bot";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -150,15 +127,11 @@ export default function CreateRoleModal({
     if (!validateForm()) return;
 
     // Ensure botsId is a comma-separated string
-    const botsId =
-      Array.isArray(formData.botsId) && formData.botsId.length > 0
-        ? formData.botsId.join(",")
-        : "";
     const status = Number(formData.status);
     const roleData = {
       rolename: formData.rolename,
       createdBy: formData.createdBy, // Logged-in user ID
-      botsId,
+      botsId: "",
       status,
     };
 
@@ -211,7 +184,7 @@ export default function CreateRoleModal({
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="md"
+      maxWidth="sm"
       fullWidth
       BackdropProps={{
         sx: {
@@ -223,7 +196,7 @@ export default function CreateRoleModal({
         sx: {
           borderRadius: isMobile ? 0 : 3,
           maxHeight: isMobile ? "100%" : "75vh",
-          maxWidth: isMobile ? "100%" : "800px",
+          maxWidth: isMobile ? "100%" : "560px",
           width: isMobile ? "100%" : "100%",
           boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
         },
@@ -239,42 +212,17 @@ export default function CreateRoleModal({
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box>
-              <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                Create New Role
+              <Typography variant="h6" component="div" sx={{ fontWeight: 600, fontFamily: "Georgia, serif", color: "#30251d" }}>
+                Add role
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.5, color: "#796b5c" }}>
+                Create a role to manage CMS access.
               </Typography>
             </Box>
           </Box>
-          <IconButton onClick={handleClose} size="small" disabled={loading}>
-            <CloseIcon color="primary" />
-          </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 2, // spacing between dropdowns
-            marginBottom: 2,
-            mt: 2,
-          }}
-        >
-          <Box sx={{ flex: 1 }}>
-            <MultiSelectDropdown
-              label="Select Bot"
-              options={botDropdown.map((bot) => ({
-                label: bot.name,
-                value: bot.id,
-              }))}
-              onChange={(newValues) => handleInputChange("botsId")(newValues)} // pass array
-              value={formData.botsId || []} // must be array
-              error={!!errors.botsId}
-              helperText={errors.botsId ? String(errors.botsId) : ""}
-              disabled={loading}
-              required
-            />
-          </Box>
-        </Box>
+      <DialogContent sx={{ display: "grid", gap: 2, px: 3, pt: "36px !important", pb: 3 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* Role Information */}
           <Box>
@@ -294,7 +242,16 @@ export default function CreateRoleModal({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, gap: 2 }}>
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: "1px solid rgba(161,93,45,0.14)", backgroundColor: "#fffdf8" }}>
+        <DynamicButton
+          onClick={handleClose}
+          disabled={loading}
+          variant="outlined"
+          size="small"
+          sx={{ minHeight: 40, minWidth: 96, borderRadius: 2, borderColor: "rgba(161,93,45,0.35)", color: "#8c4d24", "&:hover": { borderColor: "#a15d2d", backgroundColor: "#fcf2e6" } }}
+        >
+          Cancel
+        </DynamicButton>
         <DynamicButton
           onClick={handleSubmit}
           disabled={loading}
@@ -302,6 +259,7 @@ export default function CreateRoleModal({
           size="medium"
           loading={loading}
           loadingText="Saving..."
+          sx={{ minHeight: 40, minWidth: 120, borderRadius: 2, backgroundColor: "#211710", color: "#fffaf0", "&:hover": { backgroundColor: "#8c4d24" } }}
         >
           Save
         </DynamicButton>

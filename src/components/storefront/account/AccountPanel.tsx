@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Loader from "@/components/Loader/loader";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearAuth, loginUser, logoutUser, restoreAuthSession, type User as AuthUser } from "@/slice/AuthSlice";
 import { authService } from "@/services/authService";
@@ -124,7 +125,7 @@ export default function AccountPanel() {
   }
 
   if (checkingSession) {
-    return <main className="mx-auto grid min-h-[55vh] w-full max-w-3xl place-items-center px-4 py-12"><p className="text-sm text-textSecondary">Loading your account...</p></main>;
+    return <main className="mx-auto min-h-[55vh] w-full max-w-3xl px-4 py-12"><Loader fullscreen={false} text="Loading your account..." /></main>;
   }
 
   if (isAuthenticated && user) {

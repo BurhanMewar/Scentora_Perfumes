@@ -7,6 +7,7 @@ import { getGuestCartQuantity } from "@/lib/guest-cart";
 import { getGuestWishlistQuantity } from "@/lib/guest-wishlist";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logoutUser } from "@/slice/AuthSlice";
+import ScentoraBrand from "@/components/shared/ScentoraBrand";
 import { useRouter } from "next/navigation";
 
 const links = [
@@ -70,12 +71,7 @@ export default function Navbar() {
           aria-label="Scentora home"
           className="absolute left-1/2 inline-flex -translate-x-1/2 items-center gap-2.5 whitespace-nowrap sm:gap-3"
         >
-          <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-xl bg-accent font-heading text-2xl font-bold text-textPrimary shadow-sm ring-1 ring-black/5 sm:h-10 sm:w-10 sm:text-3xl">
-            S
-          </span>
-          <span className="font-heading text-sm font-bold uppercase leading-none tracking-[0.2em] text-accent sm:text-base sm:tracking-[0.26em] md:text-lg">
-            SCENTORA
-          </span>
+          <ScentoraBrand />
         </Link>
 
         <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5 sm:right-6 sm:gap-2">

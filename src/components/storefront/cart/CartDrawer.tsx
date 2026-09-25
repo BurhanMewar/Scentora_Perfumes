@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import Loader from "@/components/Loader/loader";
 import {
   getGuestCart,
   removeGuestCartItem,
@@ -126,9 +127,7 @@ export default function CartDrawer() {
 
             <div className="flex-1 overflow-y-auto px-5 py-4">
               {loading && items.length === 0 ? (
-                <div className="grid min-h-40 place-items-center text-sm text-textSecondary">
-                  Loading cart...
-                </div>
+                <Loader fullscreen={false} text="Loading your cart..." />
               ) : null}
 
               {!loading && items.length === 0 ? (

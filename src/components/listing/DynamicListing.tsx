@@ -17,7 +17,6 @@ import {
   Avatar,
   IconButton,
   InputBase,
-  alpha,
   CircularProgress,
   Alert,
   Menu,
@@ -46,6 +45,7 @@ import {
   Refresh as RefreshIcon,
   Upload as UploadIcon,
   Clear as ClearIcon,
+  FileDownload as ExportIcon,
 } from "@mui/icons-material";
 import DynamicButton from "../DynamicButton";
 
@@ -80,6 +80,8 @@ export interface FilterConfig {
 export interface ListingConfig<T = any> {
   title: string;
   description?: string;
+  hideHeader?: boolean;
+  externalFilterKeys?: string[];
   columns: ListingColumn<T>[];
   actions?: ListingAction<T>[];
   primaryAction?: {
@@ -95,6 +97,13 @@ export interface ListingConfig<T = any> {
   }>;
   searchable?: boolean;
   searchPlaceholder?: string;
+  filterInSearch?: boolean;
+  tableMaxHeight?: number | string;
+  tableMinWidth?: number | string;
+  fillAvailableHeight?: boolean;
+  compactStats?: boolean;
+  exportable?: boolean;
+  exportFileName?: string;
   filterable?: boolean;
   showFilter?: boolean;
   filters?: FilterConfig[];
@@ -147,6 +156,33 @@ export default function DynamicListing<T = any>({
   // Filter state to collect values before applying, initialized with initialFilters
   const [filterValues, setFilterValues] =
     useState<Record<string, any>>(initialFilters);
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>(initialFilters);
+  const visibleData = (data ?? []).filter((row) => {
+    const query = searchQuery.trim().toLowerCase();
+    const rowValues = row && typeof row === "object"
+      ? Object.values(row as unknown as Record<string, unknown>)
+      : [row];
+    const matchesSearch = !query || rowValues
+      .some((value) => String(value ?? "").toLowerCase().includes(query));
+    if (!matchesSearch) return false;
+    return Object.entries(appliedFilters).every(([key, expected]) => {
+      if (config.externalFilterKeys?.includes(key)) return true;
+      if (expected === undefined || expected === null || expected === "") return true;
+      const actual = String((row as unknown as Record<string, unknown>)[key] ?? "");
+      return actual.toLowerCase() === String(expected).toLowerCase();
+    });
+  });
+  const inlineFilter = config.filterable && config.showFilter && config.filters?.length === 1
+    ? config.filters[0]
+    : null;
+  const hasAdvancedFilters = Boolean(config.filterable && config.showFilter && (config.filters?.length ?? 0) > 1);
+
+  const handleInlineFilterChange = (key: string, value: any) => {
+    const nextFilters = { ...appliedFilters, [key]: value };
+    setFilterValues((current) => ({ ...current, [key]: value }));
+    setAppliedFilters(nextFilters);
+    onFilter?.(nextFilters);
+  };
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -168,7 +204,7 @@ export default function DynamicListing<T = any>({
   // Handle action click
   const handleActionClick = (action: ListingAction<T>) => {
     if (selectedRow && data) {
-      action.onClick(selectedRow, data.indexOf(selectedRow));
+      action.onClick(selectedRow, visibleData.indexOf(selectedRow));
     }
     handleRowMenuClose();
   };
@@ -191,6 +227,7 @@ export default function DynamicListing<T = any>({
 
   // Handle apply filters
   const handleApplyFilters = () => {
+    setAppliedFilters(filterValues);
     if (onFilter) {
       onFilter(filterValues);
     }
@@ -200,6 +237,7 @@ export default function DynamicListing<T = any>({
   // Handle clear all filters
   const handleClearFilters = () => {
     setFilterValues({});
+    setAppliedFilters({});
     if (onFilter) {
       onFilter({});
     }
@@ -259,51 +297,68 @@ export default function DynamicListing<T = any>({
   };
 
   return (
-    <Box className={className}>
+    <Box className={`${className ?? ""} ${config.fillAvailableHeight ? "dynamic-listing-fill" : ""}`} sx={{ width: "100%", minWidth: 0, ...(config.fillAvailableHeight ? { display: "flex", flexDirection: "column", height: "100%", minHeight: 0, overflow: "hidden" } : {}) }}>
       {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
+      {!config.hideHeader && <Box sx={{ mb: 4 }}>
         <Box
           sx={{
             display: "flex",
+            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 2,
             mb: 2,
+            flex: "0 0 auto",
           }}
         >
           <Typography variant="h4" sx={{ fontWeight: 600 }}>
             {config.title}
           </Typography>
-          {config.primaryAction && (
-            <DynamicButton
-              variant="primary"
-              startIcon={config.primaryAction.icon}
-              onClick={config.primaryAction.onClick}
-              size="small"
-            >
-              {config.primaryAction.label}
-            </DynamicButton>
-          )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {config.exportable === true && (
+              <DynamicButton
+                variant="primary"
+                startIcon={<ExportIcon />}
+                onClick={() => exportListingCsv(config, visibleData)}
+                size="small"
+                disabled={!data?.length}
+              >
+                Export
+              </DynamicButton>
+            )}
+            {config.primaryAction && (
+              <DynamicButton
+                variant="primary"
+                startIcon={config.primaryAction.icon}
+                onClick={config.primaryAction.onClick}
+                size="small"
+              >
+                {config.primaryAction.label}
+              </DynamicButton>
+            )}
+          </Box>
         </Box>
         {config.description && (
           <Typography variant="body1" color="text.secondary">
             {config.description}
           </Typography>
         )}
-      </Box>
+      </Box>}
 
       {/* Stats Cards */}
       {config.stats && config.stats.length > 0 && (
         <Box
           sx={{
             display: "grid",
-            gap: 3,
+            gap: config.compactStats ? 1.5 : 3,
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            mb: 4,
+            mb: config.compactStats ? 2 : 4,
+            flex: "0 0 auto",
           }}
         >
           {config.stats.map((stat, index) => (
-            <Card key={index}>
-              <CardContent>
+            <Card key={index} sx={config.compactStats ? { minHeight: 76 } : undefined}>
+              <CardContent sx={config.compactStats ? { p: 1.5, "&:last-child": { pb: 1.5 } } : undefined}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {stat.icon && (
                     <Box sx={{ color: `${stat.color || "primary"}.main` }}>
@@ -312,7 +367,7 @@ export default function DynamicListing<T = any>({
                   )}
                   <Box>
                     <Typography
-                      variant="h4"
+                      variant={config.compactStats ? "h5" : "h4"}
                       sx={{
                         fontWeight: 600,
                         color: `${stat.color || "primary"}.main`,
@@ -332,7 +387,7 @@ export default function DynamicListing<T = any>({
       )}
 
       {/* Action Bar */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, flex: "0 0 auto" }}>
         {/* Top row: filters, refresh, etc. */}
         <Box
           sx={{
@@ -344,16 +399,6 @@ export default function DynamicListing<T = any>({
           }}
         >
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            {config.filterable && config.showFilter && (
-              <DynamicButton
-                variant="outlined"
-                startIcon={<FilterIcon />}
-                size="small"
-                onClick={(e) => setAnchorEl(e.currentTarget)}
-              >
-                Filters
-              </DynamicButton>
-            )}
             {config.refreshable && onRefresh && (
               <DynamicButton
                 variant="outlined"
@@ -395,26 +440,31 @@ export default function DynamicListing<T = any>({
       </Box>
 
       {/* Search Bar */}
-      {config.searchable && (
-        <Box sx={{ mb: 3 }}>
+      {(config.searchable || inlineFilter || hasAdvancedFilters) && (
+        <Box sx={{ mb: 3, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1.5, width: "100%", flex: "0 0 auto" }}>
+          {config.searchable && (
           <Paper
             sx={{
               p: "2px 4px",
               display: "flex",
               alignItems: "center",
-              width: { xs: "100%", sm: 400 },
-              border: "1px solid",
-              borderColor: "grey.200",
-              borderRadius: 2,
+              minHeight: 44,
+              width: inlineFilter || hasAdvancedFilters ? "auto" : { xs: "100%", sm: 400 },
+              flex: inlineFilter || hasAdvancedFilters ? "1 1 0" : "0 1 auto",
+              minWidth: 0,
+              maxWidth: inlineFilter || hasAdvancedFilters ? 440 : "100%",
+              border: "1px solid rgba(161,93,45,0.22)",
+              borderRadius: 3,
+              backgroundColor: "#fffdf8",
+              boxShadow: "0 1px 2px rgba(48,37,29,0.06)",
               "&:focus-within": {
-                borderColor: "primary.main",
-                boxShadow: (theme) =>
-                  `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
+                borderColor: "#a15d2d",
+                boxShadow: "0 0 0 3px rgba(161,93,45,0.10)",
               },
             }}
           >
             <InputBase
-              sx={{ ml: 1, flex: 1, fontSize: "0.875rem" }}
+              sx={{ ml: 1, flex: 1, height: 36, fontSize: "0.875rem", color: "#30251d" }}
               placeholder={
                 config.searchPlaceholder ||
                 `Search ${config.title.toLowerCase()}...`
@@ -425,10 +475,55 @@ export default function DynamicListing<T = any>({
                 "aria-label": `search ${config.title.toLowerCase()}`,
               }}
             />
-            <IconButton sx={{ p: "10px" }} aria-label="search">
+            <IconButton onClick={() => handleSearch(searchQuery.trim())} sx={{ p: "6px", color: "#a15d2d", "&:hover": { backgroundColor: "rgba(252,140,61,0.12)" } }} aria-label="search">
               <SearchIcon />
             </IconButton>
+            {searchQuery ? (
+              <IconButton onClick={() => handleSearch("")} sx={{ p: "6px", color: "#796b5c", "&:hover": { backgroundColor: "rgba(252,140,61,0.12)", color: "#8c4d24" } }} aria-label="clear search">
+                <ClearIcon />
+              </IconButton>
+            ) : null}
           </Paper>
+          )}
+          {inlineFilter ? (
+            inlineFilter.type === "select" ? (
+              <FormControl size="small" sx={{ width: { xs: 160, sm: 190 }, flex: "0 0 auto" }}>
+                <InputLabel sx={{ color: "#796b5c", "&.Mui-focused": { color: "#8c4d24" } }}>{inlineFilter.label}</InputLabel>
+                <Select
+                  label={inlineFilter.label}
+                  value={filterValues[inlineFilter.key] || ""}
+                  onChange={(event) => handleInlineFilterChange(inlineFilter.key, event.target.value)}
+                  MenuProps={{ PaperProps: { sx: { mt: 0.5, border: "1px solid rgba(161,93,45,0.2)", borderRadius: 2, backgroundColor: "#fffdf8", boxShadow: "0 12px 28px rgba(48,37,29,0.14)", "& .MuiMenuItem-root.Mui-selected": { backgroundColor: "rgba(252,140,61,0.14)" }, "& .MuiMenuItem-root.Mui-selected:hover": { backgroundColor: "rgba(252,140,61,0.22)" } } } }}
+                  sx={{ height: 44, borderRadius: 3, backgroundColor: "#fffdf8", color: "#30251d", fontSize: "0.875rem", "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(161,93,45,0.22)" }, "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#a15d2d" }, "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#a15d2d", borderWidth: 1 }, "& .MuiSvgIcon-root": { color: "#8c4d24" } }}
+                >
+                  <MenuItem value="">All {inlineFilter.label}</MenuItem>
+                  {inlineFilter.options?.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                </Select>
+              </FormControl>
+            ) : (
+              <TextField
+                size="small"
+                label={inlineFilter.label}
+                type={inlineFilter.type === "date" || inlineFilter.type === "number" ? inlineFilter.type : "text"}
+                placeholder={inlineFilter.placeholder}
+                value={filterValues[inlineFilter.key] || ""}
+                onChange={(event) => handleInlineFilterChange(inlineFilter.key, event.target.value)}
+                InputLabelProps={inlineFilter.type === "date" ? { shrink: true } : undefined}
+                sx={{ width: { xs: 160, sm: 190 }, flex: "0 0 auto", "& .MuiOutlinedInput-root": { height: 44, borderRadius: 3, backgroundColor: "#fffdf8", color: "#30251d", "& fieldset": { borderColor: "rgba(161,93,45,0.22)" }, "&:hover fieldset": { borderColor: "#a15d2d" }, "&.Mui-focused fieldset": { borderColor: "#a15d2d" } }, "& .MuiInputLabel-root": { color: "#796b5c", "&.Mui-focused": { color: "#8c4d24" } } }}
+              />
+            )
+          ) : null}
+          {hasAdvancedFilters && (
+            <DynamicButton
+              variant="outlined"
+              startIcon={<FilterIcon />}
+              size="small"
+              sx={{ minHeight: 44, px: 2, borderRadius: 3, borderColor: "rgba(161,93,45,0.35)", color: "#8c4d24", backgroundColor: "#fffdf8", "&:hover": { borderColor: "#a15d2d", backgroundColor: "#fcf2e6" } }}
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+            >
+              Filters
+            </DynamicButton>
+          )}
         </Box>
       )}
 
@@ -441,14 +536,34 @@ export default function DynamicListing<T = any>({
 
       {/* Data Table */}
 
-      <Card>
-        <CardContent sx={{ p: 0 }}>
+      <Card sx={{ width: "100%", minWidth: 0, maxWidth: "100%", ...(config.fillAvailableHeight ? { display: "flex", flex: 1, minHeight: 0, overflow: "hidden" } : {}) }}>
+        <CardContent sx={config.fillAvailableHeight ? { display: "flex", flex: 1, minWidth: 0, minHeight: 0, overflow: "hidden", p: 0, "&:last-child": { pb: 0 } } : { minWidth: 0, p: 0 }}>
           <TableContainer
             component={Paper}
             variant="outlined"
-            sx={{ border: "none" }}
+            sx={{
+              border: "none",
+              width: "100%",
+              maxWidth: "100%",
+              minWidth: 0,
+              height: config.fillAvailableHeight ? "100%" : undefined,
+              maxHeight: config.fillAvailableHeight ? "none" : config.tableMaxHeight ?? "max(180px, calc(100dvh - 560px))",
+              minHeight: 0,
+              overflowX: "auto",
+              overflowY: "auto",
+              overscrollBehavior: "contain",
+              "&::-webkit-scrollbar": { width: 9, height: 9 },
+              "&::-webkit-scrollbar-thumb": { backgroundColor: "#b8a895", borderRadius: 8 },
+              "&::-webkit-scrollbar-track": { backgroundColor: "#f5efe5" },
+            }}
           >
-            <Table>
+            <Table
+              stickyHeader
+              sx={{
+                width: "100%",
+                minWidth: config.tableMinWidth ?? Math.max(720, config.columns.length * 150 + (config.actions?.length ? 72 : 0)),
+              }}
+            >
               <TableHead>
                 <TableRow>
                   {config.columns.map((column) => (
@@ -516,7 +631,7 @@ export default function DynamicListing<T = any>({
                       )}
                     </TableRow>
                   ))
-                ) : !data || data.length === 0 ? (
+                ) : visibleData.length === 0 ? (
                   // Empty state
                   <TableRow>
                     <TableCell
@@ -525,7 +640,7 @@ export default function DynamicListing<T = any>({
                       }
                     >
                       <Box sx={{ textAlign: "center", py: 4 }}>
-                        <Box sx={{ mb: 3 }}>
+                        <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
                           <img
                             src="/Asset/hand-drawn-no-data-concept_52683-127823-removebg-preview.png"
                             alt="No data found"
@@ -572,7 +687,7 @@ export default function DynamicListing<T = any>({
                   </TableRow>
                 ) : (
                   // Data rows
-                  data
+                  visibleData
                     .filter((row) => row) // skip null/undefined rows
                     .map((row, index) => (
                       <TableRow key={index} hover>
@@ -633,30 +748,31 @@ export default function DynamicListing<T = any>({
           horizontal: "right",
         }}
       >
-        {config.actions?.map((action) => {
-          const safeData = data ?? [];
-          const shouldShow = action.show
-            ? action.show(selectedRow!, safeData.indexOf(selectedRow!))
-            : true;
-          if (!shouldShow) return null;
+        {rowMenuAnchor && selectedRow
+          ? config.actions?.map((action) => {
+              const shouldShow = action.show
+                ? action.show(selectedRow, visibleData.indexOf(selectedRow))
+                : true;
+              if (!shouldShow) return null;
 
-          return (
-            <MenuItem
-              key={action.key}
-              onClick={() => handleActionClick(action)}
-              sx={{ color: action.color ? `${action.color}.main` : "inherit" }}
-            >
-              <ListItemIcon
-                sx={{
-                  color: action.color ? `${action.color}.main` : "inherit",
-                }}
-              >
-                {action.icon}
-              </ListItemIcon>
-              <ListItemText>{action.label}</ListItemText>
-            </MenuItem>
-          );
-        })}
+              return (
+                <MenuItem
+                  key={action.key}
+                  onClick={() => handleActionClick(action)}
+                  sx={{ color: action.color ? `${action.color}.main` : "inherit" }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      color: action.color ? `${action.color}.main` : "inherit",
+                    }}
+                  >
+                    {action.icon}
+                  </ListItemIcon>
+                  <ListItemText>{action.label}</ListItemText>
+                </MenuItem>
+              );
+            })
+          : null}
       </Menu>
 
       {/* Filter Menu */}
@@ -666,18 +782,19 @@ export default function DynamicListing<T = any>({
         onClose={() => setAnchorEl(null)}
         PaperProps={{
           sx: {
-            width: 400,
-            maxHeight: 600,
-            p: 2,
+            width: "min(320px, calc(100vw - 24px))",
+            maxHeight: "min(72dvh, 500px)",
+            overflowY: "auto",
+            p: 1.25,
           },
         }}
       >
-        <Box sx={{ p: 1 }}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        <Box sx={{ p: 0.5 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1.25, fontWeight: 700 }}>
             Advanced Filters
           </Typography>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
             {config.filters && config.filters.length > 0 ? (
               config.filters.map((filter) => (
                 <Box key={filter.key} sx={{ position: "relative" }}>
@@ -822,12 +939,13 @@ export default function DynamicListing<T = any>({
             )}
 
             {/* Filter Actions */}
-            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+              <Box sx={{ display: "flex", gap: 0.75, mt: 1.25 }}>
               <DynamicButton
                 variant="outlined"
                 size="small"
                 onClick={handleClearFilters}
                 fullWidth
+                sx={{ minHeight: 34, fontSize: "0.75rem", px: 1 }}
               >
                 Clear All
               </DynamicButton>
@@ -836,6 +954,7 @@ export default function DynamicListing<T = any>({
                 size="small"
                 onClick={handleApplyFilters}
                 fullWidth
+                sx={{ minHeight: 34, fontSize: "0.75rem", px: 1 }}
                 disabled={
                   !Object.keys(filterValues).some(
                     (key) => filterValues[key] && filterValues[key] !== ""
@@ -850,4 +969,32 @@ export default function DynamicListing<T = any>({
       </Menu>
     </Box>
   );
+}
+
+function exportListingCsv<T>(config: ListingConfig<T>, rows: T[]) {
+  if (!rows.length) return;
+
+  const escapeCsvValue = (value: unknown) => {
+    const normalized = value == null
+      ? ""
+      : typeof value === "object"
+        ? JSON.stringify(value)
+        : String(value);
+    const isFormula = /^[=+@]/.test(normalized) || /^-(?!\d+(?:\.\d+)?$)/.test(normalized);
+    const safeValue = isFormula ? `'${normalized}` : normalized;
+    return `"${safeValue.replaceAll('"', '""')}"`;
+  };
+  const headings = config.columns.map((column) => escapeCsvValue(column.label));
+  const records = rows.map((row) => config.columns.map((column) => {
+    const value = row && typeof row === "object" ? (row as any)[column.key] : "";
+    return escapeCsvValue(value);
+  }));
+  const csv = [headings, ...records].map((record) => record.join(",")).join("\r\n");
+  const fileName = config.exportFileName || `${config.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "listing"}.csv`;
+  const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }

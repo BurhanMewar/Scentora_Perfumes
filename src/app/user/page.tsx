@@ -235,6 +235,7 @@ export default function UserPage() {
 
   const config: ListingConfig<User> = {
     title: "User",
+    fillAvailableHeight: true,
     columns,
     actions,
     primaryAction: {

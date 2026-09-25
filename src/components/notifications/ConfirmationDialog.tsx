@@ -9,11 +9,9 @@ import {
   Button,
   Box,
   Typography,
-  IconButton,
   Divider,
 } from "@mui/material";
 import {
-  Close as CloseIcon,
   Warning as WarningIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
@@ -51,9 +49,8 @@ export default function ConfirmationDialog({
     switch (type) {
       case "danger":
         return {
-          icon: <DeleteIcon sx={{ fontSize: 36, color: "error.main" }} />,
+          icon: <DeleteIcon sx={{ fontSize: 30, color: "#a15d2d" }} />,
           confirmColor: "error" as const,
-          iconBgColor: "error.light",
         };
       case "success":
         return {
@@ -61,19 +58,16 @@ export default function ConfirmationDialog({
             <CheckCircleIcon sx={{ fontSize: 36, color: "success.main" }} />
           ),
           confirmColor: "success" as const,
-          iconBgColor: "success.light",
         };
       case "info":
         return {
           icon: <InfoIcon sx={{ fontSize: 36, color: "info.main" }} />,
           confirmColor: "info" as const,
-          iconBgColor: "info.light",
         };
       default: // warning
         return {
-          icon: <WarningIcon sx={{ fontSize: 36, color: "warning.main" }} />,
+          icon: <WarningIcon sx={{ fontSize: 30, color: "#a15d2d" }} />,
           confirmColor: "warning" as const,
-          iconBgColor: "warning.light",
         };
     }
   };
@@ -99,13 +93,17 @@ export default function ConfirmationDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 2,
-          boxShadow: "0 12px 24px rgba(0, 0, 0, 0.1)",
+          border: "1px solid rgba(161,93,45,0.2)",
+          borderRadius: 3,
+          background: "#fffaf0",
+          color: "#211710",
+          boxShadow: "0 18px 40px rgba(33,23,16,0.2)",
           maxWidth: { xs: "90vw", sm: 400 },
+          overflow: "hidden",
         },
       }}
     >
-      <DialogTitle sx={{ pb: 0.5, pt: 2 }}>
+      <DialogTitle sx={{ pb: 1, pt: 1.75, px: 2.5, background: "linear-gradient(105deg,#fffaf0,#f7ecd8)" }}>
         <Box
           sx={{
             display: "flex",
@@ -115,28 +113,16 @@ export default function ConfirmationDialog({
         >
           <Typography
             variant="subtitle1"
-            sx={{ fontWeight: 600, color: "text.primary", fontSize: "1.1rem" }}
+            sx={{ fontWeight: 700, color: "#30251d", fontSize: "1rem" }}
           >
             {title}
           </Typography>
-          {/* <IconButton
-            onClick={handleClose}
-            disabled={loading}
-            sx={{
-              color: 'grey.500',
-              '&:hover': {
-                backgroundColor: 'grey.100',
-              },
-            }}
-          >
-            <CloseIcon />
-          </IconButton> */}
         </Box>
       </DialogTitle>
 
-      <Divider />
+      <Divider sx={{ borderColor: "rgba(161,93,45,0.16)" }} />
 
-      <DialogContent sx={{ pt: 2, pb: 1, px: 3 }}>
+      <DialogContent sx={{ pt: 2, pb: 1.5, px: 2.5 }}>
         <Box
           sx={{
             display: "flex",
@@ -148,15 +134,15 @@ export default function ConfirmationDialog({
           {/* Icon */}
           <Box
             sx={{
-              width: 60,
-              height: 60,
+              width: 48,
+              height: 48,
               borderRadius: "50%",
-              backgroundColor: `${typeConfig.iconBgColor}20`,
+              backgroundColor: "rgba(252,140,61,0.12)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               mb: 2,
-              border: `2px solid ${typeConfig.iconBgColor}40`,
+              border: "1px solid rgba(161,93,45,0.2)",
             }}
           >
             {displayIcon}
@@ -166,7 +152,7 @@ export default function ConfirmationDialog({
           <Typography
             variant="body2"
             sx={{
-              color: "text.secondary",
+              color: "#625548",
               lineHeight: 1.5,
               maxWidth: 320,
               mb: 1,
@@ -180,10 +166,10 @@ export default function ConfirmationDialog({
           {type === "danger" && (
             <Box
               sx={{
-                backgroundColor: "error.light",
-                color: "error.contrastText",
+                backgroundColor: "rgba(252,140,61,0.12)",
+                color: "#8c4d24",
                 padding: 1.5,
-                borderRadius: 1.5,
+                borderRadius: 2,
                 width: "100%",
                 mt: 1,
               }}
@@ -199,9 +185,9 @@ export default function ConfirmationDialog({
         </Box>
       </DialogContent>
 
-      <Divider />
+      <Divider sx={{ borderColor: "rgba(161,93,45,0.16)" }} />
 
-      <DialogActions sx={{ p: 2, gap: 1.5, justifyContent: "center" }}>
+      <DialogActions sx={{ p: 2, gap: 1, justifyContent: "flex-end", backgroundColor: "#fffdf8" }}>
         <DynamicButton
           onClick={handleClose}
           disabled={loading}
@@ -209,11 +195,14 @@ export default function ConfirmationDialog({
           size="small"
           sx={{
             minWidth: 80,
-            borderRadius: 1.5,
+            borderRadius: 2,
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.85rem",
-            py: 0.5,
+            py: 0.6,
+            borderColor: "rgba(161,93,45,0.35)",
+            color: "#8c4d24",
+            "&:hover": { borderColor: "#a15d2d", backgroundColor: "#fcf2e6" },
           }}
         >
           {cancelText}
@@ -226,19 +215,22 @@ export default function ConfirmationDialog({
           size="small"
           sx={{
             minWidth: 80,
-            borderRadius: 1.5,
+            borderRadius: 2,
             textTransform: "none",
             fontWeight: 500,
             fontSize: "0.85rem",
-            py: 0.5,
+            py: 0.6,
+            backgroundColor: type === "danger" ? "#211710" : undefined,
+            color: type === "danger" ? "#fffaf0" : undefined,
             boxShadow:
               type === "danger"
-                ? "0 2px 8px rgba(211, 47, 47, 0.3)"
+                ? "0 2px 8px rgba(161, 93, 45, 0.22)"
                 : undefined,
             "&:hover": {
+              backgroundColor: type === "danger" ? "#8c4d24" : undefined,
               boxShadow:
                 type === "danger"
-                  ? "0 4px 12px rgba(211, 47, 47, 0.4)"
+                  ? "0 4px 12px rgba(161, 93, 45, 0.3)"
                   : undefined,
             },
           }}

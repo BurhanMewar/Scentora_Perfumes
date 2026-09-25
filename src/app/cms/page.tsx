@@ -10,11 +10,9 @@ import {
   PanelTop,
   Pencil,
   Plus,
-  Search,
   Settings2,
   Tags,
   Trash2,
-  MoreVertical,
   Upload,
   UploadCloud,
 } from "lucide-react";
@@ -22,7 +20,11 @@ import CmsEditorShell from "@/components/storefront/cms/CmsEditorShell";
 import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
 import CmsSidebar from "@/components/storefront/cms/CmsSidebar";
-import CmsSelect from "@/components/storefront/cms/CmsSelect";
+import OrderReporting from "@/components/storefront/cms/OrderReporting";
+import DynamicListing, { type ListingConfig } from "@/components/listing/DynamicListing";
+import ConfirmationDialog from "@/components/notifications/ConfirmationDialog";
+import CmsEntityDialog from "@/components/storefront/cms/CmsEntityDialog";
+import RolesEditor from "@/components/storefront/cms/RolesEditor";
 import { siteConfig } from "@/lib/site-config";
 import { cmsRolePermissions, cmsSectionPermissions, cmsNavigation, type CmsRole, type CmsSection } from "@/components/storefront/cms/cms-config";
 
@@ -32,6 +34,7 @@ const sampleProducts = [
   { name: "Amber Dusk", category: "Unisex", price: "110.00 KWD", status: "Draft", image: "/images/Perfume/9.webp" },
   { name: "Cedar Amber", category: "Men", price: "110.00 KWD", status: "Published", image: "/images/Perfume/31.webp" },
 ];
+const productCategoryOptions = ["Men", "Women", "Unisex"];
 
 export default function CmsPage() {
   const [active, setActive] = useState<CmsSection>("overview");
@@ -43,6 +46,10 @@ export default function CmsPage() {
     if (window.matchMedia("(max-width: 639px)").matches) {
       setSidebarOpen(false);
     }
+    const sectionFromUrl = new URLSearchParams(window.location.search).get("section");
+    if (sectionFromUrl && cmsNavigation.some((item) => item.id === sectionFromUrl)) {
+      setActive(sectionFromUrl as CmsSection);
+    }
   }, []);
 
   function save(section: string) {
@@ -51,34 +58,106 @@ export default function CmsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f0e2] text-textPrimary sm:h-screen sm:overflow-hidden">
-      <div className="flex h-full">
-        <CmsSidebar open={sidebarOpen} role={role} activeSection={active} onToggle={() => setSidebarOpen((open) => !open)} onSelect={setActive} />
+  <main className="cms-app-shell h-[100dvh] overflow-hidden bg-[#f7f0e2] text-textPrimary">
+    <div className="cms-app-layout flex h-full min-w-0">
+      <CmsSidebar
+        open={sidebarOpen}
+        role={role}
+        activeSection={active}
+        onToggle={() => setSidebarOpen((open) => !open)}
+        onSelect={setActive}
+      />
 
-        <section className="flex min-w-0 flex-1 flex-col sm:overflow-hidden">
-          <Header variant="cms"
-            sidebarOpen={sidebarOpen}
-            onToggleSidebar={() => setSidebarOpen((open) => !open)}
-            onOpenSidebar={() => setSidebarOpen(true)}
-          />
+      <section className="cms-app-content flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <Header
+          variant="cms"
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() =>
+            setSidebarOpen((open) => !open)
+          }
+          onOpenSidebar={() => setSidebarOpen(true)}
+        />
 
-          {notice ? <div className="mx-5 mt-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:mx-8 lg:mx-12"><Check className="h-4 w-4" /> {notice}</div> : null}
-          <div className="min-h-0 flex-1 px-4 py-6 sm:overflow-y-auto sm:px-8 sm:py-8 lg:px-12 lg:py-10">
-            {active === "overview" ? <Overview onSelect={setActive} /> : null}
-            {active === "homepage" ? <HomepageEditor onSave={() => save("Homepage")} onPublish={() => save("Homepage publish")} /> : null}
-            {active === "products" ? <ProductsEditor onSave={() => save("Product")} onPublish={() => save("Product publish")} /> : null}
-            {active === "categories" ? <CategoriesEditor onSave={() => save("Category")} onPublish={() => save("Category publish")} /> : null}
-            {active === "collections" ? <CollectionsEditor onSave={() => save("Collection")} onPublish={() => save("Collection publish")} /> : null}
-            {active === "navigation" ? <MenuManagementEditor onSave={() => save("Menu")} onPublish={() => save("Menu publish")} /> : null}
-            {active === "media" ? <MediaEditor /> : null}
-            {active === "settings" ? <SettingsEditor onSave={() => save("Site settings")} onPublish={() => save("Site settings publish")} /> : null}
-            {active === "permissions" ? <PermissionsEditor onSave={() => save("Permissions")} onPublish={() => save("Permissions publish")} /> : null}
+        {notice ? (
+          <div className="mx-5 mt-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:mx-8 lg:mx-12">
+            <Check className="h-4 w-4" />
+            {notice}
           </div>
-          <Footer variant="cms" />
-        </section>
-      </div>
-    </main>
-  );
+        ) : null}
+
+        <div
+          className={
+            active === "orders"
+              ? "cms-orders-content min-h-0 flex-1 overflow-hidden p-3 sm:p-4"
+              : "min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10"
+          }
+        >
+          {active === "overview" ? (
+            <Overview onSelect={setActive} />
+          ) : null}
+
+          {active === "homepage" ? (
+            <HomepageEditor
+              onSave={() => save("Homepage")}
+              onPublish={() => save("Homepage publish")}
+            />
+          ) : null}
+
+          {active === "products" ? (
+            <ProductsEditor
+              onSave={() => save("Product")}
+              onPublish={() => save("Product publish")}
+            />
+          ) : null}
+
+          {active === "categories" ? (
+            <CategoriesEditor
+              onSave={() => save("Category")}
+              onPublish={() => save("Category publish")}
+            />
+          ) : null}
+
+          {active === "collections" ? (
+            <CollectionsEditor
+              onSave={() => save("Collection")}
+              onPublish={() => save("Collection publish")}
+            />
+          ) : null}
+
+          {active === "orders" ? (
+            <OrderReporting />
+          ) : null}
+
+          {active === "menu" ? (
+            <MenuEditor
+              onSave={() => save("Menu")}
+              onPublish={() => save("Menu publish")}
+            />
+          ) : null}
+
+          {active === "media" ? (
+            <MediaEditor />
+          ) : null}
+
+          {active === "settings" ? (
+            <SiteSettingsEditor
+              onSave={() => save("Site settings")}
+              onPublish={() => save("Site settings publish")}
+            />
+          ) : null}
+
+          {active === "roles" ? (
+            <RolesEditor />
+          ) : null}
+
+          {active === "permissions" ? (
+            <PermissionsEditor />
+          ) : null}
+        </div>
+      </section>
+    </div>
+  </main>
+);
 }
 
 function Overview({ onSelect }: { onSelect: (section: CmsSection) => void }) {
@@ -116,7 +195,7 @@ function Overview({ onSelect }: { onSelect: (section: CmsSection) => void }) {
           <div className="mt-7 space-y-5">
             <Step number="01" title="Edit content" text="Update copy, imagery, products and metadata." />
             <Step number="02" title="Review changes" text="Check the storefront before publishing." />
-            <Step number="03" title="Publish" text="Push changes through the NestJS API." />
+            <Step number="03" title="Publish" text="Push changes to the live site." />
           </div>
         </div>
       </div>
@@ -159,7 +238,8 @@ function HomepageEditor({ onSave, onPublish }: { onSave: () => void; onPublish: 
 
 function ProductsEditor({ onSave, onPublish }: { onSave: () => void; onPublish: () => void }) {
   const [products, setProducts] = useState(sampleProducts);
-  const [openActions, setOpenActions] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editProductName, setEditProductName] = useState("");
   const [editProductCategory, setEditProductCategory] = useState("");
@@ -170,46 +250,69 @@ function ProductsEditor({ onSave, onPublish }: { onSave: () => void; onPublish: 
     setEditProductName(product.name);
     setEditProductCategory(product.category);
     setEditProductPrice(product.price);
+    setEditorOpen(true);
   }
 
-  function saveProduct(name: string) {
+  function saveProduct() {
     if (!editProductName.trim()) return;
-    setProducts((current) => current.map((product) => product.name === name
-      ? { ...product, name: editProductName.trim(), category: editProductCategory.trim(), price: editProductPrice.trim() }
-      : product));
+    if (products.some((product) => product.name.toLowerCase() === editProductName.trim().toLowerCase() && product.name !== editingProduct)) return;
+    if (editingProduct) {
+      setProducts((current) => current.map((product) => product.name === editingProduct
+        ? { ...product, name: editProductName.trim(), category: editProductCategory.trim(), price: editProductPrice.trim() }
+        : product));
+    } else {
+      setProducts((current) => [...current, { name: editProductName.trim(), category: editProductCategory.trim(), price: editProductPrice.trim(), status: "Draft", image: "/images/Perfume/1.webp" }]);
+    }
     setEditingProduct(null);
+    setEditorOpen(false);
   }
 
   function deleteProduct(name: string) {
-    if (!window.confirm(`Delete the ${name} product?`)) return;
-    setProducts((current) => current.filter((product) => product.name !== name));
+    setDeleteTarget(name);
+  }
+
+  function confirmDeleteProduct() {
+    if (!deleteTarget) return;
+    setProducts((current) => current.filter((product) => product.name !== deleteTarget));
+    setDeleteTarget(null);
   }
 
   function publishProduct(name: string) {
     setProducts((current) => current.map((product) => product.name === name ? { ...product, status: "Published" } : product));
   }
 
-  return <CmsEditorShell title="Product catalog" description="Create and maintain every fragrance shown in the storefront." onSave={onSave} onPublish={onPublish}>
-    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-      <div className="relative max-w-md flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-textSecondary" /><input placeholder="Search products" className="min-h-11 w-full rounded-xl border border-black/15 bg-white pl-10 pr-3 text-sm outline-none focus:border-black" /></div>
-      <button type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> Add product</button>
-    </div>
-    <div className="mt-6 overflow-x-auto rounded-xl border border-black/10">
-      <table className="w-full min-w-[680px] text-left text-sm">
-        <thead className="bg-[#faf6ee] text-xs uppercase tracking-wider text-textSecondary"><tr><th className="px-4 py-3">Product</th><th className="px-4 py-3">Category</th><th className="px-4 py-3">Price</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Action</th></tr></thead>
-        <tbody>{products.map((product) => editingProduct === product.name ? (
-          <tr key={product.name} className="border-t border-black/10">
-            <td className="px-4 py-3"><div className="flex items-center gap-3 font-semibold"><Image src={product.image} alt="" width={40} height={40} className="h-10 w-10 rounded-lg object-cover" /><input value={editProductName} onChange={(event) => setEditProductName(event.target.value)} aria-label="Edit product name" className="min-h-9 w-full rounded-lg border border-black/15 px-2 text-sm outline-none focus:border-black" /></div></td>
-            <td className="px-4 py-3"><input value={editProductCategory} onChange={(event) => setEditProductCategory(event.target.value)} aria-label="Edit product category" className="min-h-9 w-full rounded-lg border border-black/15 px-2 text-sm outline-none focus:border-black" /></td>
-            <td className="px-4 py-3"><input value={editProductPrice} onChange={(event) => setEditProductPrice(event.target.value)} aria-label="Edit product price" className="min-h-9 w-full rounded-lg border border-black/15 px-2 text-sm outline-none focus:border-black" /></td>
-            <td className="px-4 py-3"><span className="text-xs text-textSecondary">{product.status}</span></td>
-            <td className="px-4 py-3"><div className="flex gap-2"><button type="button" onClick={() => saveProduct(product.name)} className="rounded-lg bg-black px-2.5 py-2 text-xs font-semibold text-white">Save</button><button type="button" onClick={() => setEditingProduct(null)} className="rounded-lg border border-black/15 px-2.5 py-2 text-xs font-semibold">Cancel</button></div></td>
-          </tr>
-        ) : (
-          <tr key={product.name} className="border-t border-black/10"><td className="flex items-center gap-3 px-4 py-3 font-semibold"><Image src={product.image} alt="" width={40} height={40} className="h-10 w-10 rounded-lg object-cover" />{product.name}</td><td className="px-4 py-3 text-textSecondary">{product.category}</td><td className="px-4 py-3">{product.price}</td><td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.status === "Published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{product.status}</span></td><td className="relative px-4 py-3"><button type="button" onClick={() => setOpenActions((current) => current === product.name ? null : product.name)} aria-label={`Open actions for ${product.name}`} className="rounded-lg p-2 text-textSecondary hover:bg-black/5 hover:text-textPrimary"><MoreVertical className="h-4 w-4" /></button>{openActions === product.name ? <div className="absolute right-4 top-11 z-10 w-32 rounded-lg border border-black/10 bg-white p-1 shadow-lg"><button type="button" onClick={() => { startEditing(product); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-black/5"><Pencil className="h-3.5 w-3.5 text-textSecondary" /> Edit</button>          <button type="button" onClick={() => { publishProduct(product.name); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-emerald-700 hover:bg-emerald-50"><Upload className="h-3.5 w-3.5" /> Publish</button><button type="button" onClick={() => { deleteProduct(product.name); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /> Delete</button></div> : null}</td></tr>
-        ))}</tbody>
-      </table>
-    </div>
+  const config: ListingConfig<(typeof products)[number]> = {
+    title: "Product catalog",
+    description: "Create and maintain every fragrance shown in the storefront.",
+    hideHeader: true,
+    searchable: true,
+    searchPlaceholder: "Search products",
+    showFilter: true,
+    filterable: true,
+    filters: [
+      { key: "category", label: "Category", type: "select", options: productCategoryOptions.map((category) => ({ value: category, label: category })) },
+      { key: "status", label: "Status", type: "select", options: [{ value: "Published", label: "Published" }, { value: "Draft", label: "Draft" }] },
+    ],
+    exportFileName: "scentora-products.csv",
+    tableMinWidth: 760,
+    columns: [
+      { key: "name", label: "Product", sortable: true, render: (_value, product) => <div className="flex min-w-48 items-center gap-3 font-semibold"><Image src={product.image} alt="" width={40} height={40} className="h-10 w-10 rounded-lg object-cover" />{product.name}</div> },
+      { key: "category", label: "Category", sortable: true },
+      { key: "price", label: "Price", sortable: true },
+      { key: "status", label: "Status", render: (_value, product) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.status === "Published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{product.status}</span> },
+    ],
+    actions: [
+      { key: "edit", label: "Edit", icon: <Pencil className="h-4 w-4" />, onClick: (product) => startEditing(product) },
+      { key: "publish", label: "Publish", icon: <Upload className="h-4 w-4" />, show: (product) => editingProduct !== product.name && product.status !== "Published", onClick: (product) => publishProduct(product.name) },
+      { key: "delete", label: "Delete", icon: <Trash2 className="h-4 w-4" />, color: "error", onClick: (product) => deleteProduct(product.name) },
+    ],
+    emptyState: { title: "No products found", description: "Add a fragrance or adjust your search and filters." },
+  };
+
+  return <CmsEditorShell title="Product catalog" description="Create and maintain every fragrance shown in the storefront." onSave={onSave} onPublish={onPublish} headerAction={<button type="button" onClick={() => { setEditingProduct(null); setEditProductName(""); setEditProductCategory("Unisex"); setEditProductPrice(""); setEditorOpen(true); }} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#a15d2d] px-3 text-xs font-semibold text-white hover:bg-[#8c4d24] sm:flex-none sm:px-4 sm:text-sm"><Plus className="h-4 w-4" /> Add product</button>}>
+    <DynamicListing config={config} data={products} />
+    <CmsEntityDialog open={editorOpen} title={editingProduct ? "Edit product" : "Add product"} description={editingProduct ? "Update the product information shown in your catalog." : "Add a new product to your catalog."} fields={[{ key: "name", label: "Product name", value: editProductName, required: true }, { key: "category", label: "Category", value: editProductCategory, type: "select", options: productCategoryOptions.map((category) => ({ value: category, label: category })) }, { key: "price", label: "Price", value: editProductPrice }]} onChange={(key, value) => { if (key === "name") setEditProductName(value); if (key === "category") setEditProductCategory(value); if (key === "price") setEditProductPrice(value); }} onClose={() => setEditorOpen(false)} onSave={saveProduct} saveLabel={editingProduct ? "Save changes" : "Add product"} />
+    <ConfirmationDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={confirmDeleteProduct} title="Delete product?" message={`Delete ${deleteTarget ?? "this product"} from the catalog? This action cannot be undone.`} confirmText="Delete product" cancelText="Keep product" type="danger" />
   </CmsEditorShell>;
 }
 
@@ -219,71 +322,86 @@ function CategoriesEditor({ onSave, onPublish }: { onSave: () => void; onPublish
     { name: "Women", slug: "women", description: "Elegant scents for women.", status: "Published" },
     { name: "Unisex", slug: "unisex", description: "Balanced fragrances for everyone.", status: "Published" },
   ]);
-  const [newCategory, setNewCategory] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [openActions, setOpenActions] = useState<string | null>(null);
 
   function addCategory() {
-    const name = newCategory.trim();
-    if (!name || categories.some((category) => category.name.toLowerCase() === name.toLowerCase())) return;
-    setCategories((current) => [...current, { name, slug: name.toLowerCase().replace(/\s+/g, "-"), description: "", status: "Draft" }]);
-    setNewCategory("");
+    setEditingSlug(null);
+    setEditName("");
+    setEditDescription("");
+    setEditorOpen(true);
   }
 
   function startEditing(category: (typeof categories)[number]) {
     setEditingSlug(category.slug);
     setEditName(category.name);
     setEditDescription(category.description);
+    setEditorOpen(true);
   }
 
-  function saveCategory(slug: string) {
+  function saveCategory() {
     const name = editName.trim();
     if (!name) return;
-    setCategories((current) => current.map((category) => category.slug === slug
-      ? { ...category, name, description: editDescription.trim(), slug: name.toLowerCase().replace(/\s+/g, "-") }
-      : category));
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    if (categories.some((category) => category.slug === slug && category.slug !== editingSlug)) return;
+    if (editingSlug) {
+      setCategories((current) => current.map((category) => category.slug === editingSlug
+        ? { ...category, name, description: editDescription.trim(), slug }
+        : category));
+    } else {
+      setCategories((current) => [...current, { name, slug, description: editDescription.trim(), status: "Draft" }]);
+    }
     setEditingSlug(null);
+    setEditorOpen(false);
   }
 
   function deleteCategory(slug: string) {
-    const category = categories.find((item) => item.slug === slug);
-    if (!category || !window.confirm(`Delete the ${category.name} category?`)) return;
-    setCategories((current) => current.filter((item) => item.slug !== slug));
+    if (!categories.some((item) => item.slug === slug)) return;
+    setDeleteTarget(slug);
+  }
+
+  function confirmDeleteCategory() {
+    if (!deleteTarget) return;
+    setCategories((current) => current.filter((item) => item.slug !== deleteTarget));
+    setDeleteTarget(null);
   }
 
   function publishCategory(slug: string) {
     setCategories((current) => current.map((category) => category.slug === slug ? { ...category, status: "Published" } : category));
   }
 
-  return <CmsEditorShell title="Category management" description="Create and organize the categories used across your product catalog." onSave={onSave} onPublish={onPublish}>
-    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-      <div>
-        <h4 className="font-semibold">Product categories</h4>
-        <p className="mt-1 text-sm text-textSecondary">Categories help customers browse the right fragrance collection.</p>
-      </div>
-      <div className="flex gap-2">
-        <input value={newCategory} onChange={(event) => setNewCategory(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addCategory(); }} placeholder="New category" aria-label="New category" className="min-h-10 min-w-0 rounded-lg border border-black/15 bg-white px-3 text-sm outline-none focus:border-black sm:w-40" />
-        <button type="button" onClick={addCategory} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-black px-3 text-xs font-semibold text-white hover:bg-black/80"><Plus className="h-3.5 w-3.5" /> Add</button>
-      </div>
-    </div>
-    <div className="mt-6 overflow-x-auto rounded-xl border border-black/10">
-      <table className="w-full min-w-[620px] text-left text-sm">
-        <thead className="bg-[#faf6ee] text-xs uppercase tracking-wider text-textSecondary"><tr><th className="px-4 py-3">Category</th><th className="px-4 py-3">Slug</th><th className="px-4 py-3">Description</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Actions</th></tr></thead>
-        <tbody>{categories.map((category) => editingSlug === category.slug ? (
-          <tr key={category.slug} className="border-t border-black/10">
-            <td className="px-4 py-3"><input value={editName} onChange={(event) => setEditName(event.target.value)} aria-label="Edit category name" className="min-h-9 w-full rounded-lg border border-black/15 px-2 text-sm outline-none focus:border-black" /></td>
-            <td className="px-4 py-3 text-textSecondary">{category.slug}</td>
-            <td className="px-4 py-3"><input value={editDescription} onChange={(event) => setEditDescription(event.target.value)} aria-label="Edit category description" className="min-h-9 w-full rounded-lg border border-black/15 px-2 text-sm outline-none focus:border-black" /></td>
-            <td className="px-4 py-3"><span className="text-xs text-textSecondary">{category.status}</span></td>
-            <td className="px-4 py-3"><div className="flex gap-2"><button type="button" onClick={() => saveCategory(category.slug)} className="rounded-lg bg-black px-2.5 py-2 text-xs font-semibold text-white">Save</button><button type="button" onClick={() => setEditingSlug(null)} className="rounded-lg border border-black/15 px-2.5 py-2 text-xs font-semibold">Cancel</button></div></td>
-          </tr>
-        ) : (
-          <tr key={category.slug} className="border-t border-black/10"><td className="px-4 py-4 font-semibold">{category.name}</td><td className="px-4 py-4 text-textSecondary">{category.slug}</td><td className="px-4 py-4 text-textSecondary">{category.description || "Add a category description"}</td><td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${category.status === "Published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{category.status}</span></td><td className="relative px-4 py-4"><button type="button" onClick={() => setOpenActions((current) => current === category.slug ? null : category.slug)} aria-label={`Open actions for ${category.name}`} className="rounded-lg p-2 text-textSecondary hover:bg-black/5 hover:text-textPrimary"><MoreVertical className="h-4 w-4" /></button>{openActions === category.slug ? <div className="absolute right-4 top-12 z-10 w-32 rounded-lg border border-black/10 bg-white p-1 shadow-lg"><button type="button" onClick={() => { startEditing(category); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-black/5"><Pencil className="h-3.5 w-3.5 text-textSecondary" /> Edit</button>          <button type="button" onClick={() => { publishCategory(category.slug); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-emerald-700 hover:bg-emerald-50"><Upload className="h-3.5 w-3.5" /> Publish</button><button type="button" onClick={() => { deleteCategory(category.slug); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /> Delete</button></div> : null}</td></tr>
-        ))}</tbody>
-      </table>
-    </div>
+  const config: ListingConfig<(typeof categories)[number]> = {
+    title: "Product categories",
+    description: "Categories help customers browse the right fragrance collection.",
+    hideHeader: true,
+    searchable: true,
+    searchPlaceholder: "Search categories",
+    filterable: true,
+    showFilter: true,
+    filters: [{ key: "status", label: "Status", type: "select", options: [{ value: "Published", label: "Published" }, { value: "Draft", label: "Draft" }] }],
+    exportFileName: "scentora-categories.csv",
+    tableMinWidth: 760,
+    columns: [
+      { key: "name", label: "Category", sortable: true, render: (_value, category) => <span className="font-semibold">{category.name}</span> },
+      { key: "slug", label: "Slug", sortable: true },
+      { key: "description", label: "Description", render: (_value, category) => category.description || "Add a category description" },
+      { key: "status", label: "Status", render: (_value, category) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${category.status === "Published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{category.status}</span> },
+    ],
+    actions: [
+      { key: "edit", label: "Edit", icon: <Pencil className="h-4 w-4" />, onClick: (category) => startEditing(category) },
+      { key: "publish", label: "Publish", icon: <Upload className="h-4 w-4" />, show: (category) => editingSlug !== category.slug && category.status !== "Published", onClick: (category) => publishCategory(category.slug) },
+      { key: "delete", label: "Delete", icon: <Trash2 className="h-4 w-4" />, color: "error", onClick: (category) => deleteCategory(category.slug) },
+    ],
+    emptyState: { title: "No categories found", description: "Add a category or adjust your search and filters." },
+  };
+
+  return <CmsEditorShell title="Category management" description="Create and organize the categories used across your product catalog." onSave={onSave} onPublish={onPublish} headerAction={<button type="button" onClick={addCategory} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#a15d2d] px-3 text-xs font-semibold text-white hover:bg-[#8c4d24] sm:flex-none sm:px-4 sm:text-sm"><Plus className="h-4 w-4" /> Add category</button>}>
+    <DynamicListing config={config} data={categories} />
+    <CmsEntityDialog open={editorOpen} title={editingSlug ? "Edit category" : "Add category"} description={editingSlug ? "Update this category and its storefront description." : "Create a category to help customers browse your products."} fields={[{ key: "name", label: "Category name", value: editName, required: true }, { key: "description", label: "Description", value: editDescription, type: "textarea" }]} onChange={(key, value) => { if (key === "name") setEditName(value); if (key === "description") setEditDescription(value); }} onClose={() => setEditorOpen(false)} onSave={saveCategory} saveLabel={editingSlug ? "Save changes" : "Add category"} />
+    <ConfirmationDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={confirmDeleteCategory} title="Delete category?" message={`Delete ${categories.find((category) => category.slug === deleteTarget)?.name ?? "this category"}? This action cannot be undone.`} confirmText="Delete category" cancelText="Keep category" type="danger" />
   </CmsEditorShell>;
 }
 
@@ -295,30 +413,42 @@ function CollectionsEditor({ onSave, onPublish }: { onSave: () => void; onPublis
     { name: "Unisex Collection", description: "Collection description from CMS", image: "/images/collections/m4.jpg", status: "Published" },
     { name: "Luxury Collection", description: "Collection description from CMS", image: "/images/collections/m1.jpg", status: "Draft" },
   ]);
-  const [openActions, setOpenActions] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<string | null>(null);
   const [editCollectionName, setEditCollectionName] = useState("");
   const [editCollectionDescription, setEditCollectionDescription] = useState("");
-  const [newCollectionName, setNewCollectionName] = useState("");
-  const [newCollectionDescription, setNewCollectionDescription] = useState("");
 
   function startEditing(collection: (typeof collections)[number]) {
     setEditingCollection(collection.name);
     setEditCollectionName(collection.name);
     setEditCollectionDescription(collection.description);
+    setEditorOpen(true);
   }
 
-  function saveCollection(name: string) {
-    if (!editCollectionName.trim()) return;
-    setCollections((current) => current.map((collection) => collection.name === name
-      ? { ...collection, name: editCollectionName.trim(), description: editCollectionDescription.trim() }
-      : collection));
+  function saveCollection() {
+    const name = editCollectionName.trim();
+    if (!name) return;
+    if (collections.some((collection) => collection.name.toLowerCase() === name.toLowerCase() && collection.name !== editingCollection)) return;
+    if (editingCollection) {
+      setCollections((current) => current.map((collection) => collection.name === editingCollection
+        ? { ...collection, name, description: editCollectionDescription.trim() }
+        : collection));
+    } else {
+      setCollections((current) => [...current, { name, description: editCollectionDescription.trim() || "Collection description from CMS", image: "/images/collections/m1.jpg", status: "Draft" }]);
+    }
     setEditingCollection(null);
+    setEditorOpen(false);
   }
 
   function deleteCollection(name: string) {
-    if (!window.confirm(`Delete the ${name} collection?`)) return;
-    setCollections((current) => current.filter((collection) => collection.name !== name));
+    setDeleteTarget(name);
+  }
+
+  function confirmDeleteCollection() {
+    if (!deleteTarget) return;
+    setCollections((current) => current.filter((collection) => collection.name !== deleteTarget));
+    setDeleteTarget(null);
   }
 
   function publishCollection(name: string) {
@@ -326,48 +456,41 @@ function CollectionsEditor({ onSave, onPublish }: { onSave: () => void; onPublis
   }
 
   function addCollection() {
-    const name = newCollectionName.trim();
-    if (!name || collections.some((collection) => collection.name.toLowerCase() === name.toLowerCase())) return;
-    setCollections((current) => [...current, {
-      name,
-      description: newCollectionDescription.trim() || "Collection description from CMS",
-      image: "/images/collections/m1.jpg",
-      status: "Draft",
-    }]);
-    setNewCollectionName("");
-    setNewCollectionDescription("");
+    setEditingCollection(null);
+    setEditCollectionName("");
+    setEditCollectionDescription("");
+    setEditorOpen(true);
   }
 
-  return <CmsEditorShell title="Collections" description="Organize products into editorial collections." onSave={onSave} onPublish={onPublish}>
-    <div className="mb-6 rounded-xl border border-black/10 bg-[#faf6ee] p-5">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div>
-          <h4 className="font-semibold">Add collection</h4>
-          <p className="mt-1 text-sm text-textSecondary">Create a new collection for your storefront.</p>
-        </div>
-        <button type="button" onClick={addCollection} className="inline-flex min-h-10 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-black px-4 text-xs font-semibold text-white hover:bg-black/80 sm:w-auto">
-          <Plus className="h-3.5 w-3.5" /> Add collection
-        </button>
-      </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <input value={newCollectionName} onChange={(event) => setNewCollectionName(event.target.value)} placeholder="Collection name" aria-label="New collection name" className="min-h-10 rounded-lg border border-black/15 bg-white px-3 text-sm outline-none focus:border-black" />
-        <input value={newCollectionDescription} onChange={(event) => setNewCollectionDescription(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addCollection(); }} placeholder="Collection description" aria-label="New collection description" className="min-h-10 rounded-lg border border-black/15 bg-white px-3 text-sm outline-none focus:border-black" />
-      </div>
-    </div>
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-      {collections.map((collection) => <div key={collection.name} className="overflow-visible rounded-2xl border border-black/10 bg-white shadow-card">
-        <div className="relative overflow-hidden rounded-t-2xl bg-[#faf6ee]">
-          <Image src={collection.image} alt="" width={480} height={180} className="h-36 w-full object-cover" />
-          <div className="absolute right-3 top-3">
-            <button type="button" onClick={() => setOpenActions((current) => current === collection.name ? null : collection.name)} aria-label={`Open actions for ${collection.name}`} className="rounded-full p-1 text-black transition-colors hover:bg-[#f9a826] hover:text-[#20150f]"><MoreVertical className="h-3 w-3" /></button>
-            {openActions === collection.name ? <div className="absolute right-0 top-11 z-10 w-32 rounded-xl border border-black/10 bg-white p-1.5 text-left shadow-card"><button type="button" onClick={() => { startEditing(collection); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-textPrimary hover:bg-[#faf6ee]"><Pencil className="h-3.5 w-3.5 text-accent" /> Edit</button><button type="button" onClick={() => { publishCollection(collection.name); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-emerald-700 hover:bg-emerald-50"><Upload className="h-3.5 w-3.5" /> Publish</button><button type="button" onClick={() => { deleteCollection(collection.name); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /> Delete</button></div> : null}
-          </div>
-        </div>
-        <div className="p-5">
-          {editingCollection === collection.name ? <div className="space-y-2"><input value={editCollectionName} onChange={(event) => setEditCollectionName(event.target.value)} aria-label="Edit collection name" className="min-h-9 w-full rounded-lg border border-black/15 px-2 text-sm outline-none focus:border-black" /><textarea value={editCollectionDescription} onChange={(event) => setEditCollectionDescription(event.target.value)} aria-label="Edit collection description" rows={2} className="w-full rounded-lg border border-black/15 px-2 py-2 text-xs outline-none focus:border-black" /><div className="flex gap-2"><button type="button" onClick={() => saveCollection(collection.name)} className="rounded-lg bg-black px-2.5 py-2 text-xs font-semibold text-white">Save</button><button type="button" onClick={() => setEditingCollection(null)} className="rounded-lg border border-black/15 px-2.5 py-2 text-xs font-semibold">Cancel</button></div></div> : <><h4 className="font-semibold">{collection.name}</h4><p className="mt-1 text-xs text-textSecondary">{collection.description}</p></>}
-        </div>
-      </div>)}
-    </div>
+  const config: ListingConfig<(typeof collections)[number]> = {
+    title: "Collections",
+    description: "Organize products into editorial collections.",
+    hideHeader: true,
+    searchable: true,
+    searchPlaceholder: "Search collections",
+    filterable: true,
+    showFilter: true,
+    filters: [{ key: "status", label: "Status", type: "select", options: [{ value: "Published", label: "Published" }, { value: "Draft", label: "Draft" }] }],
+    exportFileName: "scentora-collections.csv",
+    tableMinWidth: 760,
+    columns: [
+      { key: "image", label: "Image", render: (_value, collection) => <Image src={collection.image} alt="" width={48} height={40} className="h-10 w-12 rounded-lg object-cover" /> },
+      { key: "name", label: "Collection", sortable: true, render: (_value, collection) => <span className="font-semibold">{collection.name}</span> },
+      { key: "description", label: "Description" },
+      { key: "status", label: "Status", render: (_value, collection) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${collection.status === "Published" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{collection.status}</span> },
+    ],
+    actions: [
+      { key: "edit", label: "Edit", icon: <Pencil className="h-4 w-4" />, onClick: (collection) => startEditing(collection) },
+      { key: "publish", label: "Publish", icon: <Upload className="h-4 w-4" />, show: (collection) => editingCollection !== collection.name && collection.status !== "Published", onClick: (collection) => publishCollection(collection.name) },
+      { key: "delete", label: "Delete", icon: <Trash2 className="h-4 w-4" />, color: "error", onClick: (collection) => deleteCollection(collection.name) },
+    ],
+    emptyState: { title: "No collections found", description: "Create a collection or adjust your search and filters." },
+  };
+
+  return <CmsEditorShell title="Collections" description="Organize products into editorial collections." onSave={onSave} onPublish={onPublish} headerAction={<button type="button" onClick={addCollection} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#a15d2d] px-3 text-xs font-semibold text-white hover:bg-[#8c4d24] sm:flex-none sm:px-4 sm:text-sm"><Plus className="h-4 w-4" /> Add collection</button>}>
+    <DynamicListing config={config} data={collections} />
+    <CmsEntityDialog open={editorOpen} title={editingCollection ? "Edit collection" : "Add collection"} description={editingCollection ? "Update this collection’s name and storefront description." : "Create a collection to group products for your storefront."} fields={[{ key: "name", label: "Collection name", value: editCollectionName, required: true }, { key: "description", label: "Description", value: editCollectionDescription, type: "textarea" }]} onChange={(key, value) => { if (key === "name") setEditCollectionName(value); if (key === "description") setEditCollectionDescription(value); }} onClose={() => setEditorOpen(false)} onSave={saveCollection} saveLabel={editingCollection ? "Save changes" : "Add collection"} />
+    <ConfirmationDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={confirmDeleteCollection} title="Delete collection?" message={`Delete ${deleteTarget ?? "this collection"}? This action cannot be undone.`} confirmText="Delete collection" cancelText="Keep collection" type="danger" />
   </CmsEditorShell>;
 }
 
@@ -400,13 +523,13 @@ function buildPermissionAccess(role: CmsRole): PermissionAccess {
 }
 
 function PermissionsEditor({ onSave, onPublish }: { onSave: () => void; onPublish: () => void }) {
-  const [selectedRole, setSelectedRole] = useState<CmsRole>("admin");
+  const [selectedRole, setSelectedRole] = useState<CmsRole | null>(null);
   const [access, setAccess] = useState<PermissionAccess>(() => buildPermissionAccess("admin"));
   const pageItems = cmsNavigation.filter((item) => item.id !== "permissions");
 
-  function changeRole(role: CmsRole) {
+  function changeRole(role: CmsRole | null) {
     setSelectedRole(role);
-    setAccess(buildPermissionAccess(role));
+    if (role) setAccess(buildPermissionAccess(role));
   }
 
   function togglePermission(page: string, action: PermissionAction) {
@@ -416,28 +539,39 @@ function PermissionsEditor({ onSave, onPublish }: { onSave: () => void; onPublis
     }));
   }
 
+  const permissionRows = selectedRole
+    ? pageItems.map((item) => ({ ...item, ...access[item.id] }))
+    : [];
+  const config: ListingConfig<(typeof permissionRows)[number]> = {
+    title: "Role permissions",
+    hideHeader: true,
+    searchable: false,
+    filterable: true,
+    showFilter: true,
+    externalFilterKeys: ["role"],
+    filters: [{ key: "role", label: "Role", type: "select", options: [
+      { value: "super_admin", label: "SuperAdmin" },
+      { value: "admin", label: "Admin" },
+      { value: "editor", label: "Editor" },
+      { value: "catalog_manager", label: "Catalog manager" },
+    ] }],
+    tableMinWidth: 680,
+    columns: [
+      { key: "label", label: "Permission name", sortable: true, render: (value) => <span className="font-semibold">{value}</span> },
+      ...(["view", "create", "update", "delete"] as PermissionAction[]).map((action) => ({
+        key: action,
+        label: action[0].toUpperCase() + action.slice(1),
+        align: "center" as const,
+        render: (_value: unknown, item: (typeof permissionRows)[number]) => <input type="checkbox" checked={access[item.id]?.[action] ?? false} onChange={() => togglePermission(item.id, action)} aria-label={`${action} ${item.label}`} className="h-4 w-4 cursor-pointer accent-[#f9a826]" />,
+      })),
+    ],
+    emptyState: selectedRole
+      ? { title: "No permissions found", description: "Adjust your search to find a permission." }
+      : { title: "Select a role", description: "Choose a role to view and manage its permissions." },
+  };
+
   return <CmsEditorShell title="Permissions" description="Choose which pages and actions each role can access." onSave={onSave} onPublish={onPublish}>
-    <div className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-black/10 bg-[#faf6ee] p-5 sm:flex-row sm:items-center">
-      <CmsSelect
-        label="Role"
-        value={selectedRole}
-        onChange={(value) => changeRole(value as CmsRole)}
-        onClear={() => changeRole("admin")}
-        options={[
-          { value: "super_admin", label: "SuperAdmin" },
-          { value: "admin", label: "Admin" },
-          { value: "editor", label: "Editor" },
-          { value: "catalog_manager", label: "Catalog manager" },
-        ]}
-        className="w-full sm:w-[470px]"
-      />
-    </div>
-    <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
-      <table className="w-full min-w-[680px] text-left text-sm">
-        <thead className="bg-[#faf6ee] text-[11px] font-semibold uppercase tracking-[0.12em] text-textSecondary"><tr><th className="px-4 py-3">Permission name</th><th className="px-4 py-3 text-center">View</th><th className="px-4 py-3 text-center">Create</th><th className="px-4 py-3 text-center">Update</th><th className="px-4 py-3 text-center">Delete</th></tr></thead>
-        <tbody>{pageItems.map((item) => <tr key={item.id} className="border-t border-black/10"><td className="px-4 py-4 font-semibold text-textPrimary">{item.label}</td>{(["view", "create", "update", "delete"] as PermissionAction[]).map((action) => <td key={action} className="px-4 py-4 text-center"><input type="checkbox" checked={access[item.id]?.[action] ?? false} onChange={() => togglePermission(item.id, action)} aria-label={`${action} ${item.label}`} className="h-4 w-4 cursor-pointer accent-[#f9a826]" /></td>)}</tr>)}</tbody>
-      </table>
-    </div>
+    <DynamicListing config={config} data={permissionRows} onFilter={(filters) => changeRole((filters.role as CmsRole) || null)} />
   </CmsEditorShell>;
 }
 
@@ -457,39 +591,81 @@ function MenuManagementEditor({ onSave, onPublish }: { onSave: () => void; onPub
     { label: "Terms", parent: "-", order: 11, isMenu: true, path: "/terms", icon: "FileText", created: "Sep 23, 2026" },
     { label: "Privacy", parent: "-", order: 12, isMenu: true, path: "/privacy", icon: "Lock", created: "Sep 23, 2026" },
   ]);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingMenuLabel, setEditingMenuLabel] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [path, setPath] = useState("");
-  const [openActions, setOpenActions] = useState<string | null>(null);
 
   function addItem() {
-    const nextLabel = label.trim();
-    const nextPath = path.trim();
-    if (!nextLabel || !nextPath || items.some((item) => item.label.toLowerCase() === nextLabel.toLowerCase())) return;
-    setItems((current) => [...current, { label: nextLabel, parent: "-", order: current.length, isMenu: true, path: nextPath, icon: "Menu", created: "Sep 23, 2026" }]);
+    setEditingMenuLabel(null);
     setLabel("");
     setPath("");
+    setEditorOpen(true);
+  }
+
+  function editItem(item: (typeof items)[number]) {
+    setEditingMenuLabel(item.label);
+    setLabel(item.label);
+    setPath(item.path);
+    setEditorOpen(true);
+  }
+
+  function saveItem() {
+    const nextLabel = label.trim();
+    const nextPath = path.trim();
+    if (!nextLabel || !nextPath) return;
+    if (items.some((item) => item.label.toLowerCase() === nextLabel.toLowerCase() && item.label !== editingMenuLabel)) return;
+    if (editingMenuLabel) {
+      setItems((current) => current.map((item) => item.label === editingMenuLabel ? { ...item, label: nextLabel, path: nextPath } : item));
+    } else {
+      setItems((current) => [...current, { label: nextLabel, parent: "-", order: current.length, isMenu: true, path: nextPath, icon: "Menu", created: "Sep 23, 2026" }]);
+    }
+    setEditingMenuLabel(null);
+    setEditorOpen(false);
   }
 
   function deleteItem(itemLabel: string) {
-    if (!window.confirm(`Delete the ${itemLabel} menu item?`)) return;
-    setItems((current) => current.filter((item) => item.label !== itemLabel));
+    setDeleteTarget(itemLabel);
   }
 
-  return <CmsEditorShell title="Menu Management" description="Create and manage the menu items used across your storefront." onSave={onSave} onPublish={onPublish}>
-    <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-      <div><h4 className="font-semibold">Storefront menu</h4><p className="mt-1 text-sm text-textSecondary">Control menu order, paths, parent menus and visibility.</p></div>
-      <button type="button" onClick={addItem} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-black px-4 text-xs font-semibold text-white hover:bg-black/80"><Plus className="h-3.5 w-3.5" /> Add record</button>
-    </div>
-    <div className="mb-5 grid gap-3 rounded-xl border border-black/10 bg-[#faf6ee] p-4 sm:grid-cols-2">
-      <input value={label} onChange={(event) => setLabel(event.target.value)} placeholder="Menu name" aria-label="Menu name" className="min-h-10 rounded-lg border border-black/15 bg-white px-3 text-sm outline-none focus:border-black" />
-      <input value={path} onChange={(event) => setPath(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addItem(); }} placeholder="/path" aria-label="Menu path" className="min-h-10 rounded-lg border border-black/15 bg-white px-3 text-sm outline-none focus:border-black" />
-    </div>
-    <div className="overflow-x-auto rounded-xl border border-black/10">
-      <table className="w-full min-w-[920px] text-left text-sm">
-        <thead className="bg-[#faf6ee] text-xs uppercase tracking-wider text-textSecondary"><tr><th className="px-4 py-3">Menu</th><th className="px-4 py-3">Parent Menu</th><th className="px-4 py-3">Display Order</th><th className="px-4 py-3">Is Menu</th><th className="px-4 py-3">Path</th><th className="px-4 py-3">Icon</th><th className="px-4 py-3">Created Date</th><th className="px-4 py-3">Actions</th></tr></thead>
-        <tbody>{items.map((item) => <tr key={item.label} className="border-t border-black/10"><td className="px-4 py-4 font-semibold">{item.label}</td><td className="px-4 py-4 text-textSecondary">{item.parent}</td><td className="px-4 py-4">{item.order}</td><td className="px-4 py-4"><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Yes</span></td><td className="px-4 py-4 text-textSecondary">{item.path}</td><td className="px-4 py-4 text-textSecondary">{item.icon}</td><td className="px-4 py-4 text-textSecondary">{item.created}</td><td className="relative px-4 py-4"><button type="button" onClick={() => setOpenActions((current) => current === item.label ? null : item.label)} aria-label={`Open actions for ${item.label}`} className="rounded-lg p-2 text-textSecondary hover:bg-black/5"><MoreVertical className="h-4 w-4" /></button>{openActions === item.label ? <div className="absolute right-4 top-12 z-10 w-32 rounded-xl border border-black/10 bg-white p-1.5 shadow-card"><button type="button" onClick={() => setOpenActions(null)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-[#faf6ee]"><Pencil className="h-3.5 w-3.5 text-accent" /> Edit</button><button type="button" onClick={() => { deleteItem(item.label); setOpenActions(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /> Delete</button></div> : null}</td></tr>)}</tbody>
-      </table>
-    </div>
+  function confirmDeleteMenuItem() {
+    if (!deleteTarget) return;
+    setItems((current) => current.filter((item) => item.label !== deleteTarget));
+    setDeleteTarget(null);
+  }
+
+  const config: ListingConfig<(typeof items)[number]> = {
+    title: "Storefront menu",
+    description: "Control menu order, paths, parent menus and visibility.",
+    hideHeader: true,
+    searchable: true,
+    searchPlaceholder: "Search menu items",
+    filterable: true,
+    showFilter: true,
+    filters: [{ key: "isMenu", label: "Visibility", type: "select", options: [{ value: "true", label: "Visible" }, { value: "false", label: "Hidden" }] }],
+    exportFileName: "scentora-menu.csv",
+    tableMinWidth: 980,
+    columns: [
+      { key: "label", label: "Menu", sortable: true, render: (value) => <span className="font-semibold">{value}</span> },
+      { key: "parent", label: "Parent menu" },
+      { key: "order", label: "Display order", sortable: true, align: "center" },
+      { key: "isMenu", label: "Visibility", render: (value) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${value ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-600"}`}>{value ? "Visible" : "Hidden"}</span> },
+      { key: "path", label: "Path" },
+      { key: "icon", label: "Icon" },
+      { key: "created", label: "Created date" },
+    ],
+    actions: [
+      { key: "edit", label: "Edit", icon: <Pencil className="h-4 w-4" />, onClick: (item) => editItem(item) },
+      { key: "delete", label: "Delete", icon: <Trash2 className="h-4 w-4" />, color: "error", onClick: (item) => deleteItem(item.label) },
+    ],
+    emptyState: { title: "No menu items found", description: "Add a menu item or adjust your search and filters." },
+  };
+
+  return <CmsEditorShell title="Menu Management" description="Create and manage the menu items used across your storefront." onSave={onSave} onPublish={onPublish} headerAction={<button type="button" onClick={addItem} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#a15d2d] px-3 text-xs font-semibold text-white hover:bg-[#8c4d24] sm:flex-none sm:px-4 sm:text-sm"><Plus className="h-4 w-4" /> Add menu item</button>}>
+    <DynamicListing config={config} data={items} />
+    <CmsEntityDialog open={editorOpen} title={editingMenuLabel ? "Edit menu item" : "Add menu item"} description={editingMenuLabel ? "Update this navigation label and destination." : "Add a navigation link to your storefront menu."} fields={[{ key: "label", label: "Menu name", value: label, required: true }, { key: "path", label: "Path", value: path, required: true }]} onChange={(key, value) => { if (key === "label") setLabel(value); if (key === "path") setPath(value); }} onClose={() => setEditorOpen(false)} onSave={saveItem} saveLabel={editingMenuLabel ? "Save changes" : "Add menu item"} />
+    <ConfirmationDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={confirmDeleteMenuItem} title="Delete menu item?" message={`Delete ${deleteTarget ?? "this menu item"}? This action cannot be undone.`} confirmText="Delete item" cancelText="Keep item" type="danger" />
   </CmsEditorShell>;
 }
 

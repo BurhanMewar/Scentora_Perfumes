@@ -245,6 +245,7 @@ export default function AppsettingPage() {
   // Configuration for the dynamic listing
   const listingConfig: ListingConfig<Appsetting> = {
     title: "Appsetting Management",
+    fillAvailableHeight: true,
     searchPlaceholder: "Search appsettings...",
     columns,
     actions,

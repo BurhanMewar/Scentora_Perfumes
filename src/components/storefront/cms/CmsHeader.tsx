@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronLeft, KeyRound, LogOut, Menu, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, KeyRound, LogOut, Menu, UserRound } from "lucide-react";
+import { logoutUser, clearAuth } from "@/slice/AuthSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 export default function CmsHeader({
   sidebarOpen,
@@ -14,8 +17,25 @@ export default function CmsHeader({
   onOpenSidebar: () => void;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const userName = "Scentora Admin";
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const userName = user?.fullname || user?.username || "Scentora Admin";
+  const userEmail = user?.email || "";
   const userInitial = userName.trim().charAt(0).toUpperCase();
+
+  async function handleLogout() {
+    setProfileOpen(false);
+    try {
+      await dispatch(logoutUser()).unwrap();
+    } catch {
+      // Clear the local session and leave CMS even if the cookie endpoint fails.
+    } finally {
+      dispatch(clearAuth());
+      router.replace("/auth/login");
+      router.refresh();
+    }
+  }
 
   return (
     <header className="relative flex min-h-16 items-center justify-between border-b border-black/10 bg-[#fef8e8] px-3 sm:px-2 lg:px-4">
@@ -38,28 +58,24 @@ export default function CmsHeader({
           aria-label="Open account menu"
           aria-expanded={profileOpen}
           onClick={() => setProfileOpen((open) => !open)}
-          className="grid h-8 w-8 place-items-center rounded-full bg-[#f9a826] text-sm font-semibold text-[#20150f] hover:bg-[#e99a18]"
+          className="grid h-8 w-8 place-items-center rounded-full border border-[#a15d2d]/20 bg-[#f9a826] font-heading text-base font-bold leading-none text-[#20150f] shadow-sm transition-colors hover:bg-[#e99a18]"
         >
           {userInitial}
         </button>
         {profileOpen ? (
-          <div className="absolute right-3 top-14 z-50 w-[calc(100vw-1.5rem)] max-w-64 overflow-hidden rounded-xl border border-black/10 bg-white text-sm shadow-xl sm:right-0 sm:top-11">
-            <div className="border-b border-black/10 px-4 py-3">
-              <p className="font-semibold text-textPrimary">{userName}</p>
-              <p className="mt-1 truncate text-xs text-textSecondary">admin@scentora.com</p>
+          <div className="absolute right-3 top-14 z-50 w-[calc(100vw-1.5rem)] max-w-60 overflow-hidden rounded-xl border border-[#a15d2d]/20 bg-[#fffaf0] text-[13px] shadow-[0_14px_34px_rgba(33,23,16,0.18)] sm:right-0 sm:top-11">
+            <div className="border-b border-[#ffcc70]/20 bg-[#211710] px-3.5 py-2.5">
+              <p className="font-semibold text-[#fffaf0]">{userName}</p>
+              <p className="mt-0.5 truncate text-[11px] text-[#ffcc70]/75">{userEmail}</p>
             </div>
-            <div className="p-1.5">
-              <button type="button" onClick={() => setProfileOpen(false)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-textPrimary hover:bg-black/5">
-                <RefreshCw className="h-4 w-4 text-textSecondary" />
-                Clear cache
-              </button>
-              <button type="button" onClick={() => setProfileOpen(false)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-textPrimary hover:bg-black/5">
-                <KeyRound className="h-4 w-4 text-textSecondary" />
+            <div className="space-y-0.5 p-1.5">
+              <button type="button" onClick={() => setProfileOpen(false)} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[#39291e] transition-colors hover:bg-[#fc8c3d]/12 hover:text-[#8c4d24]">
+                <KeyRound className="h-3.5 w-3.5 text-[#a15d2d]" />
                 Change password
               </button>
-              <div className="my-1 border-t border-black/10" />
-              <button type="button" onClick={() => setProfileOpen(false)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-red-600 hover:bg-red-50">
-                <LogOut className="h-4 w-4" />
+              <div className="mx-2 border-t border-[#a15d2d]/15" />
+              <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[#8c4d24] transition-colors hover:bg-[#fc8c3d]/12 hover:text-[#211710]">
+                <LogOut className="h-3.5 w-3.5 text-[#a15d2d]" />
                 Logout
               </button>
             </div>
