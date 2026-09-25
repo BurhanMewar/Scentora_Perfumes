@@ -128,8 +128,8 @@ export default function CmsPage() {
             <OrderReporting />
           ) : null}
 
-          {active === "menu" ? (
-            <MenuEditor
+          {active === "navigation" ? (
+            <MenuManagementEditor
               onSave={() => save("Menu")}
               onPublish={() => save("Menu publish")}
             />
@@ -140,18 +140,24 @@ export default function CmsPage() {
           ) : null}
 
           {active === "settings" ? (
-            <SiteSettingsEditor
+            <SettingsEditor
               onSave={() => save("Site settings")}
               onPublish={() => save("Site settings publish")}
             />
           ) : null}
 
           {active === "roles" ? (
-            <RolesEditor />
+            <RolesEditor
+              onSave={() => save("Roles")}
+              onPublish={() => save("Roles publish")}
+            />
           ) : null}
 
           {active === "permissions" ? (
-            <PermissionsEditor />
+            <PermissionsEditor
+              onSave={() => save("Permissions")}
+              onPublish={() => save("Permissions publish")}
+            />
           ) : null}
         </div>
       </section>
