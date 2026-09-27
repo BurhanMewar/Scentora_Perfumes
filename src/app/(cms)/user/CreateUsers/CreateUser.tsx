@@ -21,8 +21,8 @@ import {
 import { CountryCodeSelect } from "@/components/Dropdown";
 import { countryCodes } from "@/constants/ISDCode";
 import { Close as CloseIcon } from "@mui/icons-material";
-import { AppDispatch, RootState } from "../../../store";
-import { createUser } from "../../../slice/UserSlice";
+import { AppDispatch, RootState } from "@/store";
+import { createUser } from "@/slice/UserSlice";
 import { fetchRoleDropdown } from "@/slice/DropdownSlice";
 import { MultiSelectDropdown } from "@/components/Dropdown";
 // Local interface for the form data
@@ -37,8 +37,8 @@ export interface CreateUserFormData {
   countryCode: string;
 }
 
-import { SingleSelectDropdown } from "../../../components/Dropdown";
-import DynamicButton from "../../../components/DynamicButton";
+import { SingleSelectDropdown } from "@/components/Dropdown";
+import DynamicButton from "@/components/DynamicButton";
 interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
+import { AppDispatch, RootState } from "@/store";
 import {
   fetchAppsettings,
   fetchAppsettingById,
@@ -11,18 +11,18 @@ import {
   selectAppsettingsIsLoading,
   selectAppsettingError,
   Appsetting,
-} from "../../slice/AppSettingSlice";
+} from "@/slice/AppSettingSlice";
 import DynamicListing, {
   ListingConfig,
   ListingColumn,
   ListingAction,
-} from "../../components/listing/DynamicListing";
-import AppLayout from "../../components/layout/AppLayout";
+} from "@/components/listing/DynamicListing";
+import AppLayout from "@/components/layout/AppLayout";
 import { AppsettingDetailModal } from "./ViewEditAppsetting";
 import {
   SuccessNotification,
   ConfirmationDialog,
-} from "../../components/notifications";
+} from "@/components/notifications";
 import {
   Add as AddIcon,
   Edit as EditIcon,

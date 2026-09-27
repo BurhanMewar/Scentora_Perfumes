@@ -6,8 +6,8 @@ import CmsEditorShell from "@/components/cms/CmsEditorShell";
 import DynamicListing, { type ListingConfig } from "@/components/listing/DynamicListing";
 import ConfirmationDialog from "@/components/notifications/ConfirmationDialog";
 import { ErrorNotification, SuccessNotification } from "@/components/notifications";
-import { CreateRoleModal } from "@/app/role/CreateRole";
-import { RoleDetailModal } from "@/app/role/ViewEditRole";
+import { CreateRoleModal } from "@/app/(cms)/role/CreateRole";
+import { RoleDetailModal } from "@/app/(cms)/role/ViewEditRole";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   deleteRole,

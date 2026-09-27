@@ -13,9 +13,9 @@ import {
   useTheme,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../../store";
-import { createRole, CreateRoleData } from "../../../slice/RoleSlice";
-import DynamicButton from "../../../components/DynamicButton";
+import { AppDispatch } from "@/store";
+import { createRole, CreateRoleData } from "@/slice/RoleSlice";
+import DynamicButton from "@/components/DynamicButton";
 
 export interface CreateRoleModalProps {
   open: boolean;

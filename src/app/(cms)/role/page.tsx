@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
+import { AppDispatch, RootState } from "@/store";
 import {
   fetchRoles,
   fetchRoleById,
@@ -13,20 +13,20 @@ import {
   selectRolesIsLoading,
   selectRoleError,
   Role,
-} from "../../slice/RoleSlice";
+} from "@/slice/RoleSlice";
 import DynamicListing, {
   ListingConfig,
   ListingColumn,
   ListingAction,
-} from "../../components/listing/DynamicListing";
-import AppLayout from "../../components/layout/AppLayout";
-import { CreateRoleModal } from "./CreateRole";
-import { RoleDetailModal } from "./ViewEditRole";
+} from "@/components/listing/DynamicListing";
+import AppLayout from "@/components/layout/AppLayout";
+import { CreateRoleModal } from "@/app/(cms)/role/CreateRole";
+import { RoleDetailModal } from "@/app/(cms)/role/ViewEditRole";
 import {
   SuccessNotification,
   ConfirmationDialog,
   ErrorNotification,
-} from "../../components/notifications";
+} from "@/components/notifications";
 import {
   Add as AddIcon,
   Edit as EditIcon,

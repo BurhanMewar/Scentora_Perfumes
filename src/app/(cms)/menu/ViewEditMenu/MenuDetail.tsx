@@ -25,14 +25,14 @@ import {
   Visibility as ViewIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../store";
+import { AppDispatch, RootState } from "@/store";
 import {
   updatePermissionTask,
   PermissionTask,
   UpdatePermissionTaskData,
-} from "../../../slice/PermissionTaskSlice";
-import DynamicButton from "../../../components/DynamicButton";
-import SingleSelectDropdown from "../../../components/Dropdown/SingleSelectDropdown";
+} from "@/slice/PermissionTaskSlice";
+import DynamicButton from "@/components/DynamicButton";
+import SingleSelectDropdown from "@/components/Dropdown/SingleSelectDropdown";
 import { fetchPermissionTasksDropdown } from "@/slice/DropdownSlice";
 export interface PermissionTaskDetailModalProps {
   open: boolean;

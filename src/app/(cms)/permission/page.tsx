@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
+import { AppDispatch, RootState } from "@/store";
 import DynamicButton from "@/components/DynamicButton";
 import {
   IconButton,
@@ -10,7 +10,7 @@ import {
 import DynamicListing, {
   ListingConfig,
   ListingColumn,
-} from "../../components/listing/DynamicListing";
+} from "@/components/listing/DynamicListing";
 import {
   fetchPermissions,
   savePermission,
@@ -20,12 +20,12 @@ import {
   selectPermissionIsLoading,
   Permission,
   CreatePermissionData,
-} from "../../slice/PermissionSlice";
-import AppLayout from "../../components/layout/AppLayout";
+} from "@/slice/PermissionSlice";
+import AppLayout from "@/components/layout/AppLayout";
 import {
   SuccessNotification,
   ConfirmationDialog,
-} from "../../components/notifications";
+} from "@/components/notifications";
 import { SingleSelectDropdown } from "@/components/Dropdown";
 import { Button, Box } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";

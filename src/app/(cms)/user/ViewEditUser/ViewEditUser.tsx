@@ -26,9 +26,9 @@ import {
   Visibility as ViewIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../store";
-import { updateUser, User, UpdateUserData } from "../../../slice/UserSlice";
-import DynamicButton from "../../../components/DynamicButton";
+import { AppDispatch, RootState } from "@/store";
+import { updateUser, User, UpdateUserData } from "@/slice/UserSlice";
+import DynamicButton from "@/components/DynamicButton";
 import { CountryCodeSelect } from "@/components/Dropdown";
 import { countryCodes } from "@/constants/ISDCode";
 import { MultiSelectDropdown } from "@/components/Dropdown";

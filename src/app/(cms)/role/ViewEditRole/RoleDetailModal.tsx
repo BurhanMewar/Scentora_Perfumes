@@ -25,11 +25,11 @@ import {
   Visibility as ViewIcon,
 } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../../store";
-import { updateRole, Role, UpdateRoleData } from "../../../slice/RoleSlice";
-import DynamicButton from "../../../components/DynamicButton";
+import { AppDispatch } from "@/store";
+import { updateRole, Role, UpdateRoleData } from "@/slice/RoleSlice";
+import DynamicButton from "@/components/DynamicButton";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../store";
+import { RootState } from "@/store";
 import Loader from "@/components/Loader/loader";
 export interface RoleDetailModalProps {
   open: boolean;

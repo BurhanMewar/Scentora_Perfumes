@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
+import { AppDispatch, RootState } from "@/store";
 import {
   fetchUsers,
   selectUsers,
@@ -10,18 +10,18 @@ import {
   selectUserError,
   fetchUserById,
   deleteUser,
-} from "../../slice/UserSlice";
-import { User } from "../../slice/UserSlice";
+} from "@/slice/UserSlice";
+import { User } from "@/slice/UserSlice";
 import DynamicListing, {
   ListingConfig,
   ListingColumn,
   ListingAction,
-} from "../../components/listing/DynamicListing";
-import ConfirmationDialog from "../../components/notifications/ConfirmationDialog";
-import AppLayout from "../../components/layout/AppLayout";
+} from "@/components/listing/DynamicListing";
+import ConfirmationDialog from "@/components/notifications/ConfirmationDialog";
+import AppLayout from "@/components/layout/AppLayout";
 import { CreateUserModal } from "./CreateUsers";
 import { UserDetailModal } from "./ViewEditUser";
-import { SuccessNotification, ErrorNotification } from "../../components/notifications";
+import { SuccessNotification, ErrorNotification } from "@/components/notifications";
 import {
   PersonAdd as PersonAddIcon,
   Visibility as ViewIcon,

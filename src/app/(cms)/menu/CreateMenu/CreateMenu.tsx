@@ -18,13 +18,13 @@ import {
   Alert,
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import { AppDispatch, RootState } from "../../../store";
+import { AppDispatch, RootState } from "@/store";
 import {
   createPermissionTask,
   CreatePermissionTaskData,
-} from "../../../slice/PermissionTaskSlice";
+} from "@/slice/PermissionTaskSlice";
 import { fetchPermissionTasksDropdown } from "@/slice/DropdownSlice";
-import DynamicButton from "../../../components/DynamicButton";
+import DynamicButton from "@/components/DynamicButton";
 import { SingleSelectDropdown } from "@/components/Dropdown";
 
 interface CreatePermissionTaskModalProps {
