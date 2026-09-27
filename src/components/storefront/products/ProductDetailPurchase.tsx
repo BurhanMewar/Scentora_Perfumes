@@ -1,6 +1,6 @@
 "use client";
 
-import ProductDetailActions from "@/components/storefront/ProductDetailActions";
+import ProductDetailActions from "@/components/storefront/products/ProductDetailActions";
 
 type ProductVariant = {
   id: string;

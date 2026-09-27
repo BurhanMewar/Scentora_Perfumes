@@ -1,5 +1,5 @@
-import SectionHeading from "./SectionHeading";
-import CollectionCard from "./common/CollectionCard";
+import SectionHeading from "../common/SectionHeading";
+import CollectionCard from "../collections/CollectionCard";
 
 const collections = [
     {
@@ -54,4 +54,5 @@ export default function FeaturedCollections() {
         </section>
     );
 }
+
 

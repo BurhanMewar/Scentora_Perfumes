@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/storefront/common/Breadcrumb";
 import { Heading } from "@/components/storefront/common/PageHeading";
 import Newsletter from "@/components/storefront/common/Newsletter";
-import BestSellersSection from "@/components/storefront/BestsellersSection";
-import CollectionProducts from "@/components/storefront/CollectionProducts";
+import BestSellersSection from "@/components/storefront/home/BestsellersSection";
+import CollectionProducts from "@/components/storefront/collections/CollectionProducts";
 import { findCollectionBySlug, getProducts } from "@/lib/api/catalog";
 import { getWishlistProductIdSet } from "@/lib/api/wishlist";
 

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import ArrowIcon from "./ArrowIcon";
+import ArrowIcon from "../common/ArrowIcon";
 
 interface CollectionCardProps {
   name: string;

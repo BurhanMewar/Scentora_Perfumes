@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Gift, ShieldCheck, Truck } from "lucide-react";
-import ProductDetailPurchase from "@/components/storefront/ProductDetailPurchase";
+import ProductDetailPurchase from "@/components/storefront/products/ProductDetailPurchase";
 import { formatKwd } from "@/lib/currency";
 
 type Variant = {

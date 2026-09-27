@@ -1,4 +1,4 @@
-import ProductCardWide from "./common/ProductCardWide";
+import ProductCardWide from "../products/ProductCardWide";
 import { DynamicList } from "@/components/ui";
 
 interface Product {
@@ -41,4 +41,5 @@ export default function CollectionProducts({
         />
     );
 }
+
 

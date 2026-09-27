@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import ArrowIcon from "./common/ArrowIcon";
+import ArrowIcon from "../common/ArrowIcon";
 
 export default function CategorySection() {
     const categories = [
@@ -121,4 +121,5 @@ export default function CategorySection() {
         </section>
     );
 }
+
 

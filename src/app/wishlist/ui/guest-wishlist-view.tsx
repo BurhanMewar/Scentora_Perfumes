@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProductCard from "@/components/storefront/ProductCardLarge";
+import ProductCard from "@/components/storefront/products/ProductCardLarge";
 import { Heading } from "@/components/storefront/common/PageHeading";
 import { getGuestWishlist, type GuestWishlistItem } from "@/lib/guest-wishlist";
 

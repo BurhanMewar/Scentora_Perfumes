@@ -1,7 +1,7 @@
-import SectionHeading from "./SectionHeading";
-import FilterTabs from "./FilterTabs";
-import ProductCard from "./ProductCardLarge";
-import ProductCarousel from "./ProductCarousel";
+import SectionHeading from "../common/SectionHeading";
+import FilterTabs from "../products/FilterTabs";
+import ProductCard from "../products/ProductCardLarge";
+import ProductCarousel from "../products/ProductCarousel";
 import { getProducts } from "@/lib/api/catalog";
 import { getWishlistProductIdSet } from "@/lib/api/wishlist";
 

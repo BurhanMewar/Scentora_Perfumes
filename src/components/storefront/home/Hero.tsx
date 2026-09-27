@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import BestSellers from "./Bestsellers";
+import BestSellers from "../products/Bestsellers";
 
 export default function Hero() {
   return (

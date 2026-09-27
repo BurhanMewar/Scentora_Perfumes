@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CommonLink from "./common/CommonLink";
+import CommonLink from "../common/CommonLink";
 import { addGuestCartItem } from "@/lib/guest-cart";
 import { formatKwd, parseCurrencyAmount } from "@/lib/currency";
 import { Button } from "@/components/ui";
@@ -68,4 +68,5 @@ export default function BuyButton({
     </div>
   );
 }
+
 

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Heart, ShoppingBag } from "lucide-react";
-import CommonLink from "./CommonLink";
+import CommonLink from "../common/CommonLink";
 import { addGuestCartItem } from "@/lib/guest-cart";
 import {
     addGuestWishlistItem,
@@ -200,4 +200,5 @@ export default function ProductCardWide({
         </div>
     );
 }
+
 

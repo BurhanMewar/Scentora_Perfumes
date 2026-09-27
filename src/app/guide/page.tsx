@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Breadcrumb } from "@/components/storefront/common/Breadcrumb";
 import { Heading } from "@/components/storefront/common/PageHeading";
 import Newsletter from "@/components/storefront/common/Newsletter";
-import BestSellersSection from "@/components/storefront/BestsellersSection";
+import BestSellersSection from "@/components/storefront/home/BestsellersSection";
 import GuideCard from "@/components/storefront/common/GuideCard";
 
 const guideCards = [

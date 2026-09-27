@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import ProductCard from "@/components/storefront/ProductCardLarge";
+import ProductCard from "@/components/storefront/products/ProductCardLarge";
 import { Breadcrumb } from "@/components/storefront/common/Breadcrumb";
 import { Heading } from "@/components/storefront/common/PageHeading";
-import { FilterBar } from "@/components/storefront/Filterbar";
+import { FilterBar } from "@/components/storefront/products/Filterbar";
 import Newsletter from "@/components/storefront/common/Newsletter";
 import { Pagination } from "@/components/storefront/common/Pagination";
-import BestSellersSection from "@/components/storefront/BestsellersSection";
+import BestSellersSection from "@/components/storefront/home/BestsellersSection";
 import { findCategoryBySlug, getProducts } from "@/lib/api/catalog";
 import { getWishlistProductIdSet } from "@/lib/api/wishlist";
 

@@ -1,7 +1,7 @@
-import CommonLink from "./common/CommonLink";
-import ProductCard from "./ProductCardLarge";
-import ProductCarousel from "./ProductCarousel";
-import SectionHeading from "./SectionHeading";
+import CommonLink from "../common/CommonLink";
+import ProductCard from "../products/ProductCardLarge";
+import ProductCarousel from "../products/ProductCarousel";
+import SectionHeading from "../common/SectionHeading";
 import { ensureMonthlyBestSellerEvaluation } from "@/lib/api/best-sellers";
 import { getProducts } from "@/lib/api/catalog";
 import { getWishlistProductIdSet } from "@/lib/api/wishlist";
@@ -52,4 +52,5 @@ export default async function BestSellersSection() {
         </section>
     );
 }
+
 

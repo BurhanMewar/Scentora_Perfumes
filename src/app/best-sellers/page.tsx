@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ProductCard from "@/components/storefront/ProductCardLarge";
+import ProductCard from "@/components/storefront/products/ProductCardLarge";
 import { Breadcrumb } from "@/components/storefront/common/Breadcrumb";
 import { Heading } from "@/components/storefront/common/PageHeading";
 import Newsletter from "@/components/storefront/common/Newsletter";

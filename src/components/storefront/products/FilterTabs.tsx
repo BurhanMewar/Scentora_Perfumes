@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import CommonLink from "./common/CommonLink";
+import CommonLink from "../common/CommonLink";
 
 const filters = ["All", "Hot Now", "Popular", "Men's", "Women's", "Luxury and Premium"];
 
@@ -27,4 +27,5 @@ export default function FilterTabs() {
         </div>
     );
 }
+
 

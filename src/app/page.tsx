@@ -1,12 +1,12 @@
 import Image from "next/image";
-import Hero from "@/components/storefront/Hero";
-import FooterMarquee from "@/components/storefront/FooterMarquee";
-import CategorySection from "@/components/storefront/CategorySection";
-import FragranceSection from "@/components/storefront/FragranceSection";
-import ExperienceSection from "@/components/storefront/ExperienceSection";
-import FeaturedCollections from "@/components/storefront/FeaturedCollections";
-import PremiumIngredients from "@/components/storefront/PremiumIngredients";
-import BestSellersSection from "@/components/storefront/BestsellersSection";
+import Hero from "@/components/storefront/home/Hero";
+import FooterMarquee from "@/components/storefront/common/FooterMarquee";
+import CategorySection from "@/components/storefront/home/CategorySection";
+import FragranceSection from "@/components/storefront/home/FragranceSection";
+import ExperienceSection from "@/components/storefront/home/ExperienceSection";
+import FeaturedCollections from "@/components/storefront/home/FeaturedCollections";
+import PremiumIngredients from "@/components/storefront/home/PremiumIngredients";
+import BestSellersSection from "@/components/storefront/home/BestsellersSection";
 import Newsletter from "@/components/storefront/common/Newsletter";
 
 export const metadata = {

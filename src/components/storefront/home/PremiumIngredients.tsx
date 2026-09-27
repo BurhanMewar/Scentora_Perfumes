@@ -1,6 +1,6 @@
 // components/PremiumIngredients.tsx
 import Image from "next/image";
-import CommonLink from "./common/CommonLink";
+import CommonLink from "../common/CommonLink";
 
 export default function PremiumIngredients() {
     return (
@@ -43,4 +43,5 @@ export default function PremiumIngredients() {
         </section>
     );
 }
+
 
